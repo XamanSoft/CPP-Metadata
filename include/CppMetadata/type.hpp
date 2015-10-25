@@ -18,6 +18,8 @@ public:
 	
 	virtual Value* createValue() =0;
 	virtual Value* createValue(Arguments const& args) =0;
+	
+	virtual ~Type(){}
 };
 	
 }

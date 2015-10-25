@@ -7,3 +7,4 @@ other projects when a plugin system is needed.
 
 ### ToDo
 * Add more pointer checks
+* fix arguments iterator loop

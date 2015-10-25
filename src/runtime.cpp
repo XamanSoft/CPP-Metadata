@@ -40,6 +40,7 @@ MD_REGISTER_TYPE(bool);
 
 MD_REGISTER_TYPE(signed char);
 MD_REGISTER_TYPE(char);
+MD_REGISTER_TYPE(char const *);
 MD_REGISTER_TYPE(unsigned char);
 MD_REGISTER_TYPE(wchar_t);
 MD_REGISTER_TYPE(char16_t);
@@ -62,11 +63,20 @@ MD_REGISTER_TYPE(long double);
 
 int main()
 {
-	Runtime::ValuePtr<double> vald = Runtime::Type<double>().createMultiValue();
+	Runtime::ArgumentsBuild arguments(10, 20, 0.5, "OK");
+	Runtime::Arguments args(arguments);
 	
-	vald = 0.50;
+	std::cout << args.count() << std::endl;
 	
-	std::cout << vald << std::endl;
+	Runtime::Arguments::reverse_iterator it = args.rbegin();
+	for (; it != args.rend(); it++)
+		std::cout << (*it)->type().name() << std::endl;
+	
+	/*for (Value* value : args)
+	{
+		//std::cout << value << std::endl;
+		std::cout << value->type().name() << std::endl;
+	}*/
 	
 	return 0;
 }

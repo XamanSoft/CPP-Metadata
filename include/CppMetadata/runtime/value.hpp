@@ -1,8 +1,6 @@
 #ifndef _CPPMETADATA_RUNTIME_VALUE_HPP
 #define _CPPMETADATA_RUNTIME_VALUE_HPP
 
-#include <memory>
-
 namespace CppMetadata {
 	
 class Type;
@@ -25,48 +23,54 @@ namespace Runtime {
 	public:
 		Value(): value_type(retriveRuntimeType<Tp>()) {}
 		Value(Tp const& val): value(val), value_type(retriveRuntimeType<Tp>()) {}
-		Value(CppMetadata::Value const& val): value_type(val.type()) { set(val); }
+		Value(CppMetadata::Value const& val): value_type(val.type()) { setValue(val); }
+		Value(CppMetadata::Value const* val): value_type(val->type()) { setValue(*val); }
 		Value(CppMetadata::Type const& v_type): value_type(v_type) {}
 		Value(CppMetadata::Type const& v_type, Arguments const& args): value(valueConstructor<Tp>(args)), value_type(v_type) {}
+		
+		virtual ~Value(){ }
 		
 		CppMetadata::Type const& type() const { return value_type; }
     
 		CppMetadata::Value const& getValue() const { return *this; }
 		void setValue(CppMetadata::Value const& val) { if (value_type.isEqual(val.type())) value = static_cast<CppMetadata::Runtime::Value<Tp> const &>(val).value; }
 		
-		void release() { delete this; }
+		void release() { ::delete this; }
 		
 		Tp const& get() const { return value; }
 		void set(Tp const& val) { value = val; }
 
 		Tp const& operator=(Tp const& val) { return value = val; }
-		virtual operator Tp() const { return value; };
+		operator Tp() const { return value; };
 	};
 	
 	template <typename Tp>
 	class ValuePtr: public CppMetadata::MultiValue<Tp>
 	{
-		std::shared_ptr<CppMetadata::MultiValue<Tp>> value_ptr{nullptr};
+		CppMetadata::MultiValue<Tp>* value_ptr{nullptr};
 
 	public:
 		ValuePtr() {}
+		ValuePtr(Tp const& val): value_ptr(new Runtime::Value<Tp>(val)) {}
 		ValuePtr(CppMetadata::MultiValue<Tp>* v_ptr): value_ptr(v_ptr) {}
-		ValuePtr(CppMetadata::Value* v_ptr) { if (v_ptr->type().id() == retriveRuntimeType<Tp>().id()) value_ptr.reset(static_cast<CppMetadata::MultiValue<Tp>*>(v_ptr)); }
+		ValuePtr(CppMetadata::Value* v_ptr) { if (v_ptr->type().id() == retriveRuntimeType<Tp>().id()) value_ptr = static_cast<CppMetadata::MultiValue<Tp>*>(v_ptr); }
+		
+		virtual ~ValuePtr(){ value_ptr->release(); }
 		
 		CppMetadata::Type const& type() const { return value_ptr->type(); }
     
 		CppMetadata::Value const& getValue() const { return *value_ptr; }
 		void setValue(CppMetadata::Value const& val) { value_ptr->setValue(val); }
 		
-		void release() { value_ptr.reset(); }
+		void release() { value_ptr->release(); value_ptr = nullptr; }
 		
 		Tp const& get() const { return value_ptr->get(); }
 		void set(Tp const& val) { value_ptr->set(val); }
 
 		Tp const& operator=(Tp const& val) { value_ptr->set(val); return value_ptr->get(); }
-		virtual operator Tp() const { return value_ptr->get(); };
+		operator Tp() const { return value_ptr->get(); };
 		
-		void operator=(CppMetadata::MultiValue<Tp>* v_ptr) { value_ptr.reset(v_ptr); }
+		void operator=(CppMetadata::MultiValue<Tp>* v_ptr) { value_ptr = v_ptr; }
 	};
 }
 

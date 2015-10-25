@@ -36,6 +36,7 @@ namespace Runtime {
 		
 	public:
 		RegisterType(char const* t_name): type_id(registerType(t_name, *this)), type_name(t_name), type_size(sizeof(Tp)) {}
+		virtual ~RegisterType(){}
 		
 	    int id() const { return type_id; }
 		char const* const name() const { return type_name; }
@@ -55,6 +56,7 @@ namespace Runtime {
 		
 	public:
 		Type(): type_proxy(retriveRuntimeType<Tp>()) {}
+		virtual ~Type(){}
 		
 	    int id() const { return type_proxy.id(); }
 		char const* const name() const { return type_proxy.name(); }

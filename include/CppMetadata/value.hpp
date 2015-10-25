@@ -13,11 +13,7 @@ public:
 	
 	virtual void release() =0;
 	
-	void operator delete(void *p)
-	{
-		if (p != nullptr)
-			static_cast<Value*>(p)->release();
-	}
+	virtual ~Value(){}
 };
 
 template <typename Tp>
@@ -30,11 +26,7 @@ public:
 	virtual Tp const& operator=(Tp const& val) =0;
 	virtual operator Tp() const =0;
 	
-	void operator delete (void *p)
-	{
-		if (p != nullptr)
-			static_cast<MultiValue<Tp>*>(p)->release();
-	}
+	virtual ~MultiValue(){}
 };
 	
 }

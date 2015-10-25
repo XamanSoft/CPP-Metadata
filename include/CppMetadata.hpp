@@ -4,14 +4,14 @@
 // Type definitions
 #include <CppMetadata/type.hpp>
 #include <CppMetadata/value.hpp>
-//#include <CppMetadata/arguments.hpp>
+#include <CppMetadata/arguments.hpp>
 //#include <CppMetadata/member.hpp>
 //#include <CppMetadata/object.hpp>
 
 // Type implementations
 #include <CppMetadata/runtime/type.hpp>
 #include <CppMetadata/runtime/value.hpp>
-//#include <CppMetadata/runtime/arguments.hpp>
+#include <CppMetadata/runtime/arguments.hpp>
 //#include <CppMetadata/runtime/member.hpp>
 //#include <CppMetadata/runtime/object.hpp>
 
@@ -23,6 +23,7 @@ MD_DECLARE_TYPE(bool);
 // Chars
 MD_DECLARE_TYPE(signed char);
 MD_DECLARE_TYPE(char);
+MD_DECLARE_TYPE(char const *);
 MD_DECLARE_TYPE(unsigned char);
 MD_DECLARE_TYPE(wchar_t);
 MD_DECLARE_TYPE(char16_t);
