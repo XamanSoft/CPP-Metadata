@@ -1,9 +1,10 @@
 cmake_minimum_required (VERSION 3.2)
-project (MetaData)
+project (CppMetadata)
 
-include(cxx11)
+include(cxx11.cmake)
 
-file(GLOB_RECURSE SRC_FILES src/*.cpp)
+#file(GLOB_RECURSE SRC_FILES src/*.cpp)
 
-include_directories(include/metadata)
-add_library(MetaData ${SRC_FILES})
+include_directories(include)
+#add_library(CppMd SHARED ${SRC_FILES})
+add_executable(CppMd src/runtime.cpp)
