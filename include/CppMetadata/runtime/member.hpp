@@ -1,6 +1,8 @@
 #ifndef _CPPMETADATA_RUNTIME_MEMBER_HPP
 #define _CPPMETADATA_RUNTIME_MEMBER_HPP
 
+#include <iostream>
+
 namespace CppMetadata {
 
 #define MD_OBJECT_PROPERTY(type, name)
@@ -44,7 +46,7 @@ template <class ObjTp, typename ret_val, typename... params_type>
 class FunctionBase: public CppMetadata::Member
 {
 public:
-	typedef ret_val (ObjTp::*function_t)(params_type&&...);
+	typedef ret_val (ObjTp::*function_t)(params_type...);
 private:
 	struct unpack_caller
 	{

@@ -8,4 +8,4 @@ other projects when a plugin system is needed.
 ### ToDo
 * Add more pointer checks
 * ~~fix arguments iterator loop~~
-* fix object member memory leak
+* ~~fix object member memory leak~~

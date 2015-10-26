@@ -86,7 +86,6 @@ public:
 
 char const* Test::MD_OBJECT_FUNCTION_NAME(name)()
 {
-	std::cout << "Testing" << std::endl;
 	return o_info.name;
 }
 
@@ -94,8 +93,7 @@ int main()
 {
 	Test test;
 	
-	std::cout << "Test1" << std::endl;
-	std::cout << "Classe" << test.name() << std::endl;
+	std::cout << "Classe " << test.name() << std::endl;
 	
 	return 0;
 }
