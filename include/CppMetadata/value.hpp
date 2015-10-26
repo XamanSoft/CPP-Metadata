@@ -11,7 +11,7 @@ public:
     virtual Value const& getValue() const =0;
     virtual void setValue(Value const& val) =0;
 	
-	virtual void release() =0;
+	virtual void release() const =0;
 	
 	virtual ~Value(){}
 	

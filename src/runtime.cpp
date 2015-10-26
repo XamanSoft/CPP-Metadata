@@ -36,15 +36,27 @@ extern "C" Type& retriveType(char const* name)
 	return *ret;
 }
 
+MD_REGISTER_TYPE(void);
+MD_REGISTER_TYPE(void*);
+
 MD_REGISTER_TYPE(bool);
 
 MD_REGISTER_TYPE(signed char);
 MD_REGISTER_TYPE(char);
-MD_REGISTER_TYPE(char const *);
 MD_REGISTER_TYPE(unsigned char);
 MD_REGISTER_TYPE(wchar_t);
 MD_REGISTER_TYPE(char16_t);
 MD_REGISTER_TYPE(char32_t);
+
+MD_REGISTER_TYPE(char const *);
+MD_REGISTER_TYPE(wchar_t const *);
+MD_REGISTER_TYPE(char16_t const *);
+MD_REGISTER_TYPE(char32_t  const *);
+
+MD_REGISTER_TYPE(char *);
+MD_REGISTER_TYPE(wchar_t *);
+MD_REGISTER_TYPE(char16_t *);
+MD_REGISTER_TYPE(char32_t  *);
 
 MD_REGISTER_TYPE(short int);
 MD_REGISTER_TYPE(unsigned short int);
@@ -59,24 +71,31 @@ MD_REGISTER_TYPE(float);
 MD_REGISTER_TYPE(double);
 MD_REGISTER_TYPE(long double);
 
+MD_REGISTER_TYPE(CppMetadata::Arguments*);
+MD_REGISTER_TYPE(CppMetadata::Arguments const*);
+
 #include <iostream>
+
+class Test: public Object
+{
+	MD_OBJECT(Test);
+
+public:
+	MD_OBJECT_FUNCTION_NP(char const*,name);
+};
+
+char const* Test::MD_OBJECT_FUNCTION_NAME(name)()
+{
+	std::cout << "Testing" << std::endl;
+	return o_info.name;
+}
 
 int main()
 {
-	Runtime::ArgumentsBuild arguments(10, 20, 30, 40);
-	Runtime::Arguments args(arguments);
+	Test test;
 	
-	std::cout << args.count() << std::endl;
-	
-	Runtime::Arguments::reverse_iterator it = args.rbegin();
-	for (; it != args.rend(); it++)
-		std::cout << (int)**it << std::endl;
-	
-	for (Value* value : args)
-	{
-		//std::cout << value << std::endl;
-		std::cout << value->type().name() << std::endl;
-	}
+	std::cout << "Test1" << std::endl;
+	std::cout << "Classe" << test.name() << std::endl;
 	
 	return 0;
 }

@@ -6,13 +6,13 @@
 #include <CppMetadata/value.hpp>
 #include <CppMetadata/arguments.hpp>
 #include <CppMetadata/member.hpp>
-//#include <CppMetadata/object.hpp>
+#include <CppMetadata/object.hpp>
 
 // Type implementations
 #include <CppMetadata/runtime/type.hpp>
 #include <CppMetadata/runtime/value.hpp>
 #include <CppMetadata/runtime/arguments.hpp>
 #include <CppMetadata/runtime/member.hpp>
-//#include <CppMetadata/runtime/object.hpp>
+#include <CppMetadata/runtime/object.hpp>
 
 #endif

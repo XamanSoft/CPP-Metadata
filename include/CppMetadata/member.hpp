@@ -3,28 +3,17 @@
 
 namespace CppMetadata {
 	
-#define MD_OBJECT_MEMBER(type, name)
-
-class Constant;
-class Variable;
+class Value;
+class Arguments;
 
 class Member
 {
 public:
-    enum Type {
-        MT_CONSTANT,
-        MT_VARIABLE
-    };
+	virtual char const* const name() const =0;
     
-    virtual enum Type type() const =0;
-    
-    virtual Constant& toConstant() const =0;
-    virtual Variable& toVariable() const =0;
+	virtual Value* action(Value const& value) =0;
+	virtual Value* action(Value const& value) const =0;
 };
-
-namespace Runtime {
-	
-}
 
 }
 

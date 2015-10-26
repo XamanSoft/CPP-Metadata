@@ -35,7 +35,7 @@ namespace Runtime {
 		CppMetadata::Value const& getValue() const { return *this; }
 		void setValue(CppMetadata::Value const& val) { if (value_type.isEqual(val.type())) value = static_cast<CppMetadata::Runtime::Value<Tp> const &>(val).value; }
 		
-		void release() { ::delete this; }
+		void release() const { ::delete this; }
 		
 		Tp const& get() const { return value; }
 		void set(Tp const& val) { value = val; }
@@ -63,7 +63,7 @@ namespace Runtime {
 		CppMetadata::Value const& getValue() const { return *this; }
 		void setValue(CppMetadata::Value const& val) { }
 		
-		void release() { ::delete this; }
+		void release() const { ::delete this; }
 	};
 	
 	template <typename Tp>
@@ -84,7 +84,7 @@ namespace Runtime {
 		CppMetadata::Value const& getValue() const { return *value_ptr; }
 		void setValue(CppMetadata::Value const& val) { value_ptr->setValue(val); }
 		
-		void release() { value_ptr->release(); value_ptr = nullptr; }
+		void release() const { value_ptr->release(); value_ptr = nullptr; }
 		
 		Tp const& get() const { return value_ptr->get(); }
 		void set(Tp const& val) { value_ptr->set(val); }
