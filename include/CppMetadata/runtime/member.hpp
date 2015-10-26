@@ -24,6 +24,8 @@ namespace CppMetadata {
 #define MD_OBJECT_FUNCTION_NR_NP(name) \
 	CppMetadata::Runtime::FunctionNR<object_self_t, type> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
 	void MD_OBJECT_FUNCTION_NAME(name)()
+	
+#define MD_OBJECT_FUNCTION_BODY(body) { body; }
 
 namespace Runtime {
 	

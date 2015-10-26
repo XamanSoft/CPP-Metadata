@@ -82,9 +82,10 @@ class Test: public Object
 
 public:
 	MD_OBJECT_FUNCTION_NP(char const*,name)
-	{
+	MD_OBJECT_FUNCTION_BODY
+	(
 		return o_info.name;
-	}
+	)
 };
 
 

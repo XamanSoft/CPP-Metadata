@@ -32,7 +32,7 @@ struct ArgumentsBuild: public CppMetadata::Arguments {
         contents.push_back(new Runtime::Value<T>(head));
     }
 
-    void Build() {std::cout << "AK4" << std::endl;}
+    void Build() {}
 	
 	bool empty() const { return contents.empty(); }
 	int count() const { return contents.size(); }
