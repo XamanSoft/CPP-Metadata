@@ -14,7 +14,6 @@ struct ArgumentsBuild: public CppMetadata::Arguments {
     template<class... Args>
     ArgumentsBuild(Args... tail)
     {
-		std::cout << "AKI" << std::endl;
         Build(tail...);
     }
     
@@ -23,7 +22,6 @@ struct ArgumentsBuild: public CppMetadata::Arguments {
     template<class T, class... Args>
     void Build(T head, Args... tail) 
     { 
-		std::cout << "AKI2" << std::endl;
         contents.push_back(new Runtime::Value<T>(head)); 
         Build(tail...);
     }
@@ -31,7 +29,6 @@ struct ArgumentsBuild: public CppMetadata::Arguments {
     template<class T>
     void Build(T head)
     { 
-		std::cout << "AKI3" << std::endl;
         contents.push_back(new Runtime::Value<T>(head));
     }
 

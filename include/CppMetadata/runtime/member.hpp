@@ -10,20 +10,20 @@ namespace CppMetadata {
 #define MD_OBJECT_FUNCTION_NAME(name) _md_object_function_##name
 
 #define MD_OBJECT_FUNCTION(type, name, params...) \
-	type MD_OBJECT_FUNCTION_NAME(name)(params);\
-	CppMetadata::Runtime::Function<object_self_t, type, params> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)}
+	CppMetadata::Runtime::Function<object_self_t, type, params> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
+	type MD_OBJECT_FUNCTION_NAME(name)(params)
 
 #define MD_OBJECT_FUNCTION_NP(type, name) \
-	type MD_OBJECT_FUNCTION_NAME(name)();\
-	CppMetadata::Runtime::Function<object_self_t, type> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)}
+	CppMetadata::Runtime::Function<object_self_t, type> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
+	type MD_OBJECT_FUNCTION_NAME(name)()
 
 #define MD_OBJECT_FUNCTION_NR(name, params...) \
-	void MD_OBJECT_FUNCTION_NAME(name)(params...);\
-	CppMetadata::Runtime::FunctionNR<object_self_t, type, params> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)}
+	CppMetadata::Runtime::FunctionNR<object_self_t, type, params> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
+	void MD_OBJECT_FUNCTION_NAME(name)(params...)
 
 #define MD_OBJECT_FUNCTION_NR_NP(name) \
-	void MD_OBJECT_FUNCTION_NAME(name)();\
-	CppMetadata::Runtime::FunctionNR<object_self_t, type> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)}
+	CppMetadata::Runtime::FunctionNR<object_self_t, type> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
+	void MD_OBJECT_FUNCTION_NAME(name)()
 
 namespace Runtime {
 	

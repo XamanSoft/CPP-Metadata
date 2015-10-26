@@ -81,13 +81,17 @@ class Test: public Object
 	MD_OBJECT(Test);
 
 public:
-	MD_OBJECT_FUNCTION_NP(char const*,name);
+	MD_OBJECT_FUNCTION_NP(char const*,name)
+	{
+		return o_info.name;
+	}
 };
 
-char const* Test::MD_OBJECT_FUNCTION_NAME(name)()
+
+/*char const* Test::MD_OBJECT_FUNCTION_NAME(name)()
 {
 	return o_info.name;
-}
+}*/
 
 int main()
 {
