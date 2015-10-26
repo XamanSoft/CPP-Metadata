@@ -14,6 +14,12 @@ public:
 	virtual void release() =0;
 	
 	virtual ~Value(){}
+	
+	template <typename Tp>
+	Tp const& operator=(Tp const& val);
+	
+	template <typename Tp>
+	operator Tp() const;
 };
 
 template <typename Tp>

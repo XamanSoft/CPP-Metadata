@@ -74,6 +74,18 @@ namespace Runtime {
 	};
 }
 
+template <typename Tp>
+Tp const& Value::operator=(Tp const& val)
+{
+	return static_cast<CppMetadata::MultiValue<Tp>&>(*this) = val;
+}
+
+template <typename Tp>
+Value::operator Tp() const
+{
+	return static_cast<CppMetadata::MultiValue<Tp> const&>(*this).get();
+}
+
 #define MD_VALUE_ENABLE_ARGS(type) namespace CppMetadata { namespace Runtime { template<> inline type valueConstructor<type>(Arguments const& args) { return type(args); } } }
 	
 }
