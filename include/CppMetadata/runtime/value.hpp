@@ -44,6 +44,28 @@ namespace Runtime {
 		operator Tp() const { return value; };
 	};
 	
+	template <>
+	class Value<void>: public CppMetadata::Value
+	{
+		CppMetadata::Type const& value_type;
+
+	public:
+		Value(): value_type(retriveRuntimeType<void>()) {}
+		Value(CppMetadata::Value const& val): value_type(val.type()) { setValue(val); }
+		Value(CppMetadata::Value const* val): value_type(val->type()) { setValue(*val); }
+		Value(CppMetadata::Type const& v_type): value_type(v_type) {}
+		Value(CppMetadata::Type const& v_type, Arguments const& args): value_type(v_type) {}
+		
+		virtual ~Value(){ }
+		
+		CppMetadata::Type const& type() const { return value_type; }
+    
+		CppMetadata::Value const& getValue() const { return *this; }
+		void setValue(CppMetadata::Value const& val) { }
+		
+		void release() { ::delete this; }
+	};
+	
 	template <typename Tp>
 	class ValuePtr: public CppMetadata::MultiValue<Tp>
 	{

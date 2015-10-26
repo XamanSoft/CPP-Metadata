@@ -5,6 +5,12 @@
 
 #include <stdexcept>
 
+#define MD_TYPE_CONCAT(X,Y) X##Y  // helper macro
+#define MD_TYPE_UNIQUE(X,Y) MD_TYPE_CONCAT(X,Y)
+
+#define MD_DECLARE_TYPE(type) namespace CppMetadata { namespace Runtime {	template <> CppMetadata::Type& retriveRuntimeType<type>() { return CppMetadata::Runtime::retriveType(#type); } } }
+#define MD_REGISTER_TYPE(type) static CppMetadata::Runtime::RegisterType<type> MD_TYPE_UNIQUE(register_type_,__LINE__)(#type)
+
 namespace CppMetadata {
 
 namespace Runtime {	
@@ -21,6 +27,50 @@ namespace Runtime {
 }
 
 }
+
+// Declare primitive types
+MD_DECLARE_TYPE(void); // void? :O
+MD_DECLARE_TYPE(void*);
+
+// Boolean
+MD_DECLARE_TYPE(bool);
+
+// Chars
+MD_DECLARE_TYPE(signed char);
+MD_DECLARE_TYPE(char);
+MD_DECLARE_TYPE(unsigned char);
+MD_DECLARE_TYPE(wchar_t);
+MD_DECLARE_TYPE(char16_t);
+MD_DECLARE_TYPE(char32_t);
+
+// Strings
+MD_DECLARE_TYPE(char const *);
+MD_DECLARE_TYPE(wchar_t const *);
+MD_DECLARE_TYPE(char16_t const *);
+MD_DECLARE_TYPE(char32_t  const *);
+
+MD_DECLARE_TYPE(char *);
+MD_DECLARE_TYPE(wchar_t *);
+MD_DECLARE_TYPE(char16_t *);
+MD_DECLARE_TYPE(char32_t  *);
+
+// Integers
+MD_DECLARE_TYPE(short int);
+MD_DECLARE_TYPE(unsigned short int);
+MD_DECLARE_TYPE(int);
+MD_DECLARE_TYPE(unsigned int);
+MD_DECLARE_TYPE(long int);
+MD_DECLARE_TYPE(unsigned long int);
+MD_DECLARE_TYPE(long long int);
+MD_DECLARE_TYPE(unsigned long long int);
+
+// Floating point
+MD_DECLARE_TYPE(float);
+MD_DECLARE_TYPE(double);
+MD_DECLARE_TYPE(long double);
+
+MD_DECLARE_TYPE(CppMetadata::Arguments*);
+MD_DECLARE_TYPE(CppMetadata::Arguments const*);
 
 #include "value.hpp"
 
@@ -49,6 +99,28 @@ namespace Runtime {
 		CppMetadata::Value* createValue(Arguments const& args)  { return new CppMetadata::Runtime::Value<Tp>(*this, args); }
 	};
 	
+	template <>
+	class RegisterType<void>: public CppMetadata::Type
+	{
+		int type_id{0};
+		char const* type_name{nullptr};
+		int type_size{0};
+		
+	public:
+		RegisterType(char const* t_name): type_id(registerType(t_name, *this)), type_name(t_name), type_size(0) {}
+		virtual ~RegisterType(){}
+		
+	    int id() const { return type_id; }
+		char const* const name() const { return type_name; }
+		int size() const { return type_size; }
+		
+		bool isEqual(CppMetadata::Type const& type) const { return type_id == type.id(); }
+		bool isNotEqual(CppMetadata::Type const& type) const { return type_id != type.id(); }
+		
+		CppMetadata::Value* createValue() { return new CppMetadata::Runtime::Value<void>(*this); }
+		CppMetadata::Value* createValue(Arguments const& args)  { return new CppMetadata::Runtime::Value<void>(*this, args); }
+	};
+	
 	template <typename Tp>
 	class Type: public CppMetadata::Type
 	{
@@ -72,12 +144,6 @@ namespace Runtime {
 		ValuePtr<Tp> createMultiValue(Arguments const& args)  { return ValuePtr<Tp>(type_proxy.createValue(args)); }
 	};
 }
-
-#define MD_TYPE_CONCAT(X,Y) X##Y  // helper macro
-#define MD_TYPE_UNIQUE(X,Y) MD_TYPE_CONCAT(X,Y)
-
-#define MD_DECLARE_TYPE(type) namespace CppMetadata { namespace Runtime {	template <> CppMetadata::Type& retriveRuntimeType<type>() { return CppMetadata::Runtime::retriveType(#type); } } }
-#define MD_REGISTER_TYPE(type) static CppMetadata::Runtime::RegisterType<type> MD_TYPE_UNIQUE(register_type_,__LINE__)(#type)
 	
 }
 
