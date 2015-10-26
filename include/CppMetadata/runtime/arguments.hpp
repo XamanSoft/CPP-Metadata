@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iterator>
+#include <iostream>
 
 namespace CppMetadata {
 
@@ -10,18 +11,19 @@ namespace Runtime {
 
 // Build and implements Arguments interface
 struct ArgumentsBuild: public CppMetadata::Arguments {
-
     template<class... Args>
-    ArgumentsBuild(Args&&... tail)
+    ArgumentsBuild(Args... tail)
     {
+		std::cout << "AKI" << std::endl;
         Build(tail...);
     }
     
     virtual ~ArgumentsBuild() { for (std::vector<CppMetadata::Value*>::iterator it = contents.begin(); it != contents.end(); it++) (*it)->release(); }
     
     template<class T, class... Args>
-    void Build(T head, Args&&... tail) 
+    void Build(T head, Args... tail) 
     { 
+		std::cout << "AKI2" << std::endl;
         contents.push_back(new Runtime::Value<T>(head)); 
         Build(tail...);
     }
@@ -29,10 +31,11 @@ struct ArgumentsBuild: public CppMetadata::Arguments {
     template<class T>
     void Build(T head)
     { 
+		std::cout << "AKI3" << std::endl;
         contents.push_back(new Runtime::Value<T>(head));
     }
 
-    void Build() {}
+    void Build() {std::cout << "AK4" << std::endl;}
 	
 	bool empty() const { return contents.empty(); }
 	int count() const { return contents.size(); }
