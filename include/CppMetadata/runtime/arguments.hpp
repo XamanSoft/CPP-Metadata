@@ -59,21 +59,24 @@ class Arguments: public CppMetadata::Arguments
 		
 		CppMetadata::Arguments& arguments;
 		
-		ArgumentsNav(CppMetadata::Arguments& args, bool r = false): currentPos(r ? (args.count()-1) : 0), currentValue(args.get(r ? (args.count()-1) : 0)), size(args.count()), arguments(args), rev(r) {}
+		ArgumentsNav(CppMetadata::Arguments& args, bool r = false):
+			currentPos(r ? (args.count()-1) : 0), currentValue(args.get(currentPos)),
+			size(args.count()), arguments(args), rev(r) {}
 		
 		// Overloading ++ for Pre-Increment
-		CppMetadata::Value* operator++() {			
-			if ( (rev && currentPos <= -1) || (!rev && currentPos >= size))
+		CppMetadata::Value* operator++()
+		{			
+			if ( (rev && currentPos < 0) || (!rev && currentPos > size))
 			{
 				return nullptr;
 			}
 			
-			currentPos = rev ? currentPos-1 : currentPos+1;
-			return currentValue = arguments.get(currentPos);
+			return currentValue = arguments.get(rev ? --currentPos : ++currentPos);
 		}
 
 		// Overloading ++ for Post-Increment
-		CppMetadata::Value* operator++(int) {
+		CppMetadata::Value* operator++(int)
+		{
 			CppMetadata::Value* value = nullptr;
 			
 			if (rev && currentPos > -1)
@@ -81,7 +84,7 @@ class Arguments: public CppMetadata::Arguments
 				value = arguments.get(--currentPos);
 			}
 			else if (!rev && currentPos < size)
-			{			
+			{
 				value = arguments.get(++currentPos);
 			}
 			
@@ -98,6 +101,11 @@ class Arguments: public CppMetadata::Arguments
 			currentPos = rev ? 0 : size-1;
 			rev = !rev;
 		}
+		
+		void end()
+		{
+			currentPos = rev ? -1 : size;
+		}
 	};
 	
 	CppMetadata::Arguments& arguments;
@@ -105,13 +113,15 @@ class Arguments: public CppMetadata::Arguments
 public:
 	class iterator: public std::iterator<std::input_iterator_tag, CppMetadata::Value*>
 	{
-		public:		
-			iterator(CppMetadata::Arguments& arguments, bool rev = false) : arguments_nav(arguments, rev) { }
+		protected:		
+			iterator(CppMetadata::Arguments& arguments, bool rev, bool end) : arguments_nav(arguments, rev) { if (end) arguments_nav.end(); }
+		public:
+			iterator(CppMetadata::Arguments& arguments, bool end = false) : iterator(arguments, false, end) {}
 			iterator(const iterator& mit) : arguments_nav(mit.arguments_nav) {}
 			iterator& operator++() { arguments_nav++; return *this; }
 			iterator operator++(int) {iterator tmp(*this); arguments_nav++; return tmp;}
-			bool operator==(const iterator& rhs) { return arguments_nav.currentValue == rhs.arguments_nav.currentValue; }
-			bool operator!=(const iterator& rhs) { return arguments_nav.currentValue != rhs.arguments_nav.currentValue; }
+			bool operator==(const iterator& rhs) { return arguments_nav.currentPos == rhs.arguments_nav.currentPos; }
+			bool operator!=(const iterator& rhs) { return arguments_nav.currentPos != rhs.arguments_nav.currentPos; }
 			CppMetadata::Value*& operator*() { return arguments_nav.currentValue; }
 			CppMetadata::Value** operator->() { return &arguments_nav.currentValue; }
 		private:
@@ -120,13 +130,16 @@ public:
 
 	class const_iterator: public std::iterator<std::input_iterator_tag, CppMetadata::Value*>
 	{
+		protected:
+			const_iterator(CppMetadata::Arguments& arguments, bool rev, bool end) : arguments_nav(arguments, rev) { if (end) arguments_nav.end(); }
+			
 		public:
-			const_iterator(CppMetadata::Arguments& arguments, bool rev = false) : arguments_nav(arguments, rev) { }
+			const_iterator(CppMetadata::Arguments& arguments, bool end = false)  : const_iterator(arguments, false, end) {}
 			const_iterator(const const_iterator& mit) : arguments_nav(mit.arguments_nav) {}
 			const_iterator& operator++() { arguments_nav++; return *this; }
 			const_iterator operator++(int) {const_iterator tmp(*this); arguments_nav++; return tmp;}
-			bool operator==(const const_iterator& rhs) const { return arguments_nav.currentValue == rhs.arguments_nav.currentValue; }
-			bool operator!=(const const_iterator& rhs) const { return arguments_nav.currentValue != rhs.arguments_nav.currentValue; }
+			bool operator==(const const_iterator& rhs) const { return arguments_nav.currentPos == rhs.arguments_nav.currentPos; }
+			bool operator!=(const const_iterator& rhs) const { return arguments_nav.currentPos != rhs.arguments_nav.currentPos; }
 			CppMetadata::Value* const & operator*() const { return arguments_nav.currentValue; }
 			CppMetadata::Value* const * operator->() const  { return &arguments_nav.currentValue; }
 		private:
@@ -136,13 +149,13 @@ public:
 	class reverse_iterator: public iterator
 	{
 		public:
-			reverse_iterator(CppMetadata::Arguments& arguments, bool rev = true) : iterator(arguments, rev) { }
+			reverse_iterator(CppMetadata::Arguments& arguments, bool end = false) : iterator(arguments, true, end) { }
 	};
 	
 	class const_reverse_iterator: public const_iterator
 	{
 		public:
-			const_reverse_iterator(CppMetadata::Arguments& arguments, bool rev = true) : const_iterator(arguments, rev) { }
+			const_reverse_iterator(CppMetadata::Arguments& arguments, bool end = false) : const_iterator(arguments, true, end) { }
 	};
 	
 	Arguments(CppMetadata::Arguments& args): arguments(args)
@@ -188,7 +201,7 @@ public:
 
 	reverse_iterator rend()
 	{
-		return reverse_iterator(arguments, false);
+		return reverse_iterator(arguments, true);
 	}
 
 	const_reverse_iterator rbegin() const
@@ -198,7 +211,7 @@ public:
 
 	const_reverse_iterator rend() const
 	{
-		return const_reverse_iterator(arguments, false);
+		return const_reverse_iterator(arguments, true);
 	}
 
 	const_iterator cbegin() const
@@ -218,7 +231,7 @@ public:
 
 	const_reverse_iterator crend() const
 	{
-		return const_reverse_iterator(arguments, false);
+		return const_reverse_iterator(arguments, true);
 	}
 };
 

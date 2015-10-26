@@ -63,20 +63,20 @@ MD_REGISTER_TYPE(long double);
 
 int main()
 {
-	Runtime::ArgumentsBuild arguments(10, 20, 0.5, "OK");
+	Runtime::ArgumentsBuild arguments(10, 20, 30, 40);
 	Runtime::Arguments args(arguments);
 	
 	std::cout << args.count() << std::endl;
 	
 	Runtime::Arguments::reverse_iterator it = args.rbegin();
 	for (; it != args.rend(); it++)
-		std::cout << (*it)->type().name() << std::endl;
+		std::cout << (int)**it << std::endl;
 	
-	/*for (Value* value : args)
+	for (Value* value : args)
 	{
 		//std::cout << value << std::endl;
 		std::cout << value->type().name() << std::endl;
-	}*/
+	}
 	
 	return 0;
 }
