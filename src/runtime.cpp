@@ -1,11 +1,19 @@
 #include <CppMetadata.hpp>
 #include <atomic>
-#include <mutex>
 #include <map>
+
+#ifdef _MD_USE_MUTEX
+#include <mutex>
+std::mutex register_mutex;
+#define _MD_MUTEX_LOCK register_mutex.lock()
+#define _MD_MUTEX_UNLOCK register_mutex.unlock()
+#else
+#define _MD_MUTEX_LOCK
+#define _MD_MUTEX_UNLOCK
+#endif
 
 using namespace CppMetadata;
 
-std::mutex register_mutex;
 std::atomic<int> type_id(0);
 
 struct TypeRegister
@@ -21,18 +29,18 @@ std::map<char const*, TypeRegister> type_map;
 
 extern "C" int registerType(char const* name, Type& type)
 {
-	register_mutex.lock();
+	_MD_MUTEX_LOCK;
 	int id = ++type_id;
 	type_map[name] = TypeRegister(id, &type);
-	register_mutex.unlock();
+	_MD_MUTEX_UNLOCK;
 	return id;
 }
 
 extern "C" Type& retriveType(char const* name)
 {
-	register_mutex.lock();
+	_MD_MUTEX_LOCK;
 	Type* ret = type_map[name].type;
-	register_mutex.unlock();
+	_MD_MUTEX_UNLOCK;
 	return *ret;
 }
 
@@ -93,18 +101,33 @@ public:
 		return i;
 	)
 	
-	MD_OBJECT_FUNCTION_NR(show,int i)
+	MD_OBJECT_FUNCTION_NR(show,int const& i)
 	MD_OBJECT_FUNCTION_BODY
 	(
 		std::cout << "show " << i << std::endl;
 	)
+	
+	MD_OBJECT_PROPERTY_GS(int,prop,&Test::prop_getter,&Test::prop_setter);
+	
+	int prop_getter(int const& value)
+	{
+		return value*2;
+	}
+	
+	void prop_setter(int const& value)
+	{
+		show(value);
+	}
 };
 
 int main()
 {
 	Test test;
 	
-	test.show(2);
+	test.prop = 1;
+	test.show(test.prop);
+	test.prop = 3;
+	test.show(test.prop);
 	
 	return 0;
 }

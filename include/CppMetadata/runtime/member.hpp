@@ -1,11 +1,10 @@
 #ifndef _CPPMETADATA_RUNTIME_MEMBER_HPP
 #define _CPPMETADATA_RUNTIME_MEMBER_HPP
 
-#include <iostream>
-
 namespace CppMetadata {
 
-#define MD_OBJECT_PROPERTY(type, name)
+#define MD_OBJECT_PROPERTY(type, name) CppMetadata::Runtime::Property<object_self_t, type> name{this,#name};
+#define MD_OBJECT_PROPERTY_GS(type, name, gs...) CppMetadata::Runtime::Property<object_self_t, type> name{this,#name,gs};
 
 #define MD_OBJECT_FUNCTION_NAME(name) _md_object_function_##name
 
@@ -62,6 +61,12 @@ struct build_indices<0> {
 template <std::size_t N>
 using BuildIndices = typename build_indices<N>::type;
 
+template <class ObjTp>
+void registerMember(ObjTp* object, char const* const name, CppMetadata::Member* member)
+{
+	object->members[name] = member;
+}
+
 template <class ObjTp, typename ret_val, typename... params_type>
 class Function: public CppMetadata::Member
 {
@@ -102,7 +107,7 @@ private:
 	ObjTp* object;
 	
 public:	
-	Function(ObjTp* obj, char const* const name, function_t func): function_name(name), function(func), object(obj) {}
+	Function(ObjTp* obj, char const* const name, function_t func): function_name(name), function(func), object(obj) { registerMember<ObjTp>(object,name,this); }
 	
 	char const* const name() const { return function_name; }
 	CppMetadata::Value* action(CppMetadata::Value const& value) { CppMetadata::Arguments* args = value; return unpack_caller()(object, function, *args); }
@@ -173,7 +178,7 @@ private:
 	ObjTp* object;
 	
 public:	
-	FunctionNR(ObjTp* obj, char const* const name, function_t func): function_name(name), function(func), object(obj) {}
+	FunctionNR(ObjTp* obj, char const* const name, function_t func): function_name(name), function(func), object(obj) { registerMember<ObjTp>(object,name,this); }
 	
 	char const* const name() const { return function_name; }
 	CppMetadata::Value* action(CppMetadata::Value const& value) { CppMetadata::Arguments* args = value; return unpack_caller()(object, function, *args); }
@@ -196,16 +201,65 @@ public:
 	}
 };
 
-/*
-template <typename Tp>
+template <class ObjTp, typename Tp>
 class Property: public CppMetadata::Member
 {
+private:
+	char const* const property_name;
+	Tp property_value{Tp()};
+	ObjTp* object;	
 public:
-	char const* const name() const =0;
+	typedef Tp (ObjTp::*getter_t)(int const&);
+	typedef void (ObjTp::*setter_t)(Tp const&);
+	
+	getter_t getter{nullptr};
+	setter_t setter{nullptr};
+	
+	Property(ObjTp* obj, char const* const name, getter_t get = nullptr, setter_t set = nullptr):
+		property_name(name), object(obj), getter(get), setter(set) { registerMember<ObjTp>(object,name,this); }
+	
+	char const* const name() const { return property_name; }
     
-	Value* action(Value const& value) =0;
-	Value* action(Value const& value) const =0;
-};*/
+	CppMetadata::Value* action(CppMetadata::Value const& value)
+	{
+		property_value = value;
+		
+		if (value.type().isNotEqual(Runtime::Type<void>()) && setter != nullptr)
+			(object->*setter)(property_value);
+		
+		Tp res = property_value;
+		if (getter != nullptr)
+			res = (object->*getter)(property_value);
+		
+		return new Runtime::Value<Tp>(res);
+	}
+	
+	CppMetadata::Value* action(CppMetadata::Value const& value) const
+	{
+		Tp res = property_value;
+		
+		if (getter != nullptr)
+			res = (object->*getter)(property_value);
+		
+		return new Runtime::Value<Tp>(res);
+	}
+	
+	Tp operator=(Tp value)
+	{	
+		CppMetadata::Value* val = action(Runtime::Value<Tp>(value));
+		Tp res = *val;
+		val->release();
+		return res;
+	}
+	
+	operator Tp() const
+	{
+		CppMetadata::Value* val = action(Runtime::Value<void>());
+		Tp res = *val;
+		val->release();
+		return res;
+	}
+};
 	
 }
 

@@ -8,6 +8,7 @@
     CppMetadata::Object::ObjectInfo o_info{ #o_name, nullptr, this }; \
     std::map<const char*,CppMetadata::Member*> members;\
     typedef o_name object_self_t;\
+	template <class ObjTp> friend void CppMetadata::Runtime::registerMember(ObjTp*, char const* const, CppMetadata::Member*);\
     public: \
     const CppMetadata::Object::ObjectInfo& objectInfo() const { return o_info; } \
     int memberCount() const { return members.size(); };\
