@@ -86,19 +86,25 @@ public:
 	(
 		return o_info.name;
 	)
+	
+	MD_OBJECT_FUNCTION(int,index,int i)
+	MD_OBJECT_FUNCTION_BODY
+	(
+		return i;
+	)
+	
+	MD_OBJECT_FUNCTION_NR(show,int i)
+	MD_OBJECT_FUNCTION_BODY
+	(
+		std::cout << "show " << i << std::endl;
+	)
 };
-
-
-/*char const* Test::MD_OBJECT_FUNCTION_NAME(name)()
-{
-	return o_info.name;
-}*/
 
 int main()
 {
 	Test test;
 	
-	std::cout << "Classe " << test.name() << std::endl;
+	test.show(2);
 	
 	return 0;
 }

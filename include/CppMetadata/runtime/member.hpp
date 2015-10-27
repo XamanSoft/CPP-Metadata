@@ -10,7 +10,7 @@ namespace CppMetadata {
 #define MD_OBJECT_FUNCTION_NAME(name) _md_object_function_##name
 
 #define MD_OBJECT_FUNCTION(type, name, params...) \
-	CppMetadata::Runtime::Function<object_self_t, type, params> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
+	CppMetadata::Runtime::apply_args<CppMetadata::Runtime::Function,object_self_t, type, type(params)>::Type name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
 	type MD_OBJECT_FUNCTION_NAME(name)(params)
 
 #define MD_OBJECT_FUNCTION_NP(type, name) \
@@ -18,8 +18,8 @@ namespace CppMetadata {
 	type MD_OBJECT_FUNCTION_NAME(name)()
 
 #define MD_OBJECT_FUNCTION_NR(name, params...) \
-	CppMetadata::Runtime::FunctionNR<object_self_t, type, params> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
-	void MD_OBJECT_FUNCTION_NAME(name)(params...)
+	CppMetadata::Runtime::apply_args_nr<CppMetadata::Runtime::FunctionNR,object_self_t, void(params)>::Type name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
+	void MD_OBJECT_FUNCTION_NAME(name)(params)
 
 #define MD_OBJECT_FUNCTION_NR_NP(name) \
 	CppMetadata::Runtime::FunctionNR<object_self_t, type> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
@@ -28,6 +28,24 @@ namespace CppMetadata {
 #define MD_OBJECT_FUNCTION_BODY(body) { body; }
 
 namespace Runtime {
+	
+template<template<typename...> class C,typename A1, typename A2,typename T>
+struct apply_args;
+
+template<template<typename...> class C, typename Arg1, typename Arg2,typename R,typename... Args>
+struct apply_args<C, Arg1, Arg2, R(Args...) >
+{
+    typedef C<Arg1, Arg2, Args...> Type;
+};
+
+template<template<typename...> class C,typename A1, typename T>
+struct apply_args_nr;
+
+template<template<typename...> class C, typename Arg1,typename R,typename... Args>
+struct apply_args_nr<C, Arg1, R(Args...) >
+{
+    typedef C<Arg1, Args...> Type;
+};
 	
 template <std::size_t... Indices>
 struct indices {
@@ -45,7 +63,7 @@ template <std::size_t N>
 using BuildIndices = typename build_indices<N>::type;
 
 template <class ObjTp, typename ret_val, typename... params_type>
-class FunctionBase: public CppMetadata::Member
+class Function: public CppMetadata::Member
 {
 public:
 	typedef ret_val (ObjTp::*function_t)(params_type...);
@@ -84,25 +102,18 @@ private:
 	ObjTp* object;
 	
 public:	
-	FunctionBase(ObjTp* obj, char const* const name, function_t func): function_name(name), function(func), object(obj) {}
+	Function(ObjTp* obj, char const* const name, function_t func): function_name(name), function(func), object(obj) {}
 	
 	char const* const name() const { return function_name; }
 	CppMetadata::Value* action(CppMetadata::Value const& value) { CppMetadata::Arguments* args = value; return unpack_caller()(object, function, *args); }
 	CppMetadata::Value* action(CppMetadata::Value const& value) const { CppMetadata::Arguments const* args = value; return unpack_caller()(object, function, *args); }
-};
-
-template <class ObjTp, typename ret_val, typename... params_type>
-class Function: public FunctionBase<ObjTp,ret_val,params_type...>
-{
-public:
-	Function(ObjTp* obj, char const* const name, typename FunctionBase<ObjTp,ret_val,params_type...>::function_t func): FunctionBase<ObjTp,ret_val,params_type...>(obj, name, func) {}
 
 	ret_val operator()(params_type&&... params)
 	{
 		Runtime::ArgumentsBuild arguments(params...);
 		Runtime::Value<CppMetadata::Arguments*> value_arg(&arguments);
 		
-		CppMetadata::Value* val = FunctionBase<ObjTp,ret_val,params_type...>::action(value_arg);
+		CppMetadata::Value* val = action(value_arg);
 		ret_val res = *val;
 		val->release();
 		return res;
@@ -113,25 +124,67 @@ public:
 		Runtime::ArgumentsBuild arguments(params...);
 		Runtime::Value<CppMetadata::Arguments const*> value_arg(&arguments);
 		
-		CppMetadata::Value* val = FunctionBase<ObjTp,ret_val,params_type...>::action(value_arg);
+		CppMetadata::Value* val = action(value_arg);
 		ret_val res = *val;
-		val->release(); // fix-it to const
+		val->release();
 		return res;
 	}
 };
 
 template <class ObjTp, typename... params_type>
-class FunctionNR: public FunctionBase<ObjTp,void,params_type...>
+class FunctionNR: public CppMetadata::Member
 {
 public:
-	FunctionNR(ObjTp* obj, char const* const name, typename FunctionBase<ObjTp,void,params_type...>::function_t func): FunctionBase<ObjTp,void,params_type...>(obj, name, func) {}
+	typedef void (ObjTp::*function_t)(params_type...);
+private:
+	struct unpack_caller
+	{
+	private:
+		template <size_t... I>
+		CppMetadata::Value* call(ObjTp* object, function_t f, CppMetadata::Arguments& args, indices<I...>) const
+		{
+			(object->*f)(*args.get(I)...);
+			return new Runtime::Value<void>();
+		}
+		
+		template <size_t... I>
+		CppMetadata::Value* call(ObjTp * object, function_t f, CppMetadata::Arguments const& args, indices<I...>) const
+		{
+			(object->*f)(*args.get(I)...);
+			return new Runtime::Value<void>();
+		}
+
+	public:
+		CppMetadata::Value* operator () (ObjTp* object, function_t f, CppMetadata::Arguments& args)
+		{
+			//assert(args.size() == num_args); // just to be sure
+			return call(object, f, args, BuildIndices<sizeof...(params_type)>{});
+		}
+		
+		CppMetadata::Value* operator () (ObjTp* object, function_t f, CppMetadata::Arguments const& args) const
+		{
+			//assert(args.size() == num_args); // just to be sure
+			return call(object, f, args, BuildIndices<sizeof...(params_type)>{});
+		}
+	};
+
+	char const* const function_name;
+	function_t function;
+	ObjTp* object;
+	
+public:	
+	FunctionNR(ObjTp* obj, char const* const name, function_t func): function_name(name), function(func), object(obj) {}
+	
+	char const* const name() const { return function_name; }
+	CppMetadata::Value* action(CppMetadata::Value const& value) { CppMetadata::Arguments* args = value; return unpack_caller()(object, function, *args); }
+	CppMetadata::Value* action(CppMetadata::Value const& value) const { CppMetadata::Arguments const* args = value; return unpack_caller()(object, function, *args); }
 	
 	void operator()(params_type&&... params)
 	{
 		Runtime::ArgumentsBuild arguments(params...);
 		Runtime::Value<CppMetadata::Arguments*> value_arg(&arguments);
 		
-		FunctionBase<ObjTp,void,params_type...>::action(value_arg)->release();
+		action(value_arg)->release();
 	}
 	
 	void operator()(params_type&&... params) const
@@ -139,7 +192,7 @@ public:
 		Runtime::ArgumentsBuild arguments(params...);
 		Runtime::Value<CppMetadata::Arguments const*> value_arg(&arguments);
 		
-		FunctionBase<ObjTp,void,params_type...>::action(value_arg)->release();
+		action(value_arg)->release();
 	}
 };
 
