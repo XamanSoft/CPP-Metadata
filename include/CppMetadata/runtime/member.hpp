@@ -4,21 +4,21 @@
 namespace CppMetadata {
 
 #define MD_OBJECT_PROPERTY(type, name) CppMetadata::Runtime::Property<object_self_t, type> name{this,#name};
-#define MD_OBJECT_PROPERTY_GS(type, name, gs...) CppMetadata::Runtime::Property<object_self_t, type> name{this,#name,gs};
+#define MD_OBJECT_PROPERTY_GS(type, name, ...) CppMetadata::Runtime::Property<object_self_t, type> name{this,#name,__VA_ARGS__};
 
 #define MD_OBJECT_FUNCTION_NAME(name) _md_object_function_##name
 
-#define MD_OBJECT_FUNCTION(type, name, params...) \
-	CppMetadata::Runtime::apply_args<CppMetadata::Runtime::Function,object_self_t, type, type(params)>::Type name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
-	type MD_OBJECT_FUNCTION_NAME(name)(params)
+#define MD_OBJECT_FUNCTION(type, name, ...) \
+	CppMetadata::Runtime::apply_args<CppMetadata::Runtime::Function,object_self_t, type, type(__VA_ARGS__)>::Type name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
+	type MD_OBJECT_FUNCTION_NAME(name)(__VA_ARGS__)
 
 #define MD_OBJECT_FUNCTION_NP(type, name) \
 	CppMetadata::Runtime::Function<object_self_t, type> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
 	type MD_OBJECT_FUNCTION_NAME(name)()
 
-#define MD_OBJECT_FUNCTION_NR(name, params...) \
-	CppMetadata::Runtime::apply_args_nr<CppMetadata::Runtime::FunctionNR,object_self_t, void(params)>::Type name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
-	void MD_OBJECT_FUNCTION_NAME(name)(params)
+#define MD_OBJECT_FUNCTION_NR(name, ...) \
+	CppMetadata::Runtime::apply_args_nr<CppMetadata::Runtime::FunctionNR,object_self_t, void(__VA_ARGS__)>::Type name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
+	void MD_OBJECT_FUNCTION_NAME(name)(__VA_ARGS__)
 
 #define MD_OBJECT_FUNCTION_NR_NP(name) \
 	CppMetadata::Runtime::FunctionNR<object_self_t, type> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\

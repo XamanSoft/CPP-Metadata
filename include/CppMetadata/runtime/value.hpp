@@ -9,7 +9,7 @@ class Arguments;
 namespace Runtime {
 	
 	template <typename Tp>
-	inline Tp valueConstructor(Arguments const& args)
+	inline Tp valueConstructor(CppMetadata::Arguments const& args)
 	{
 		return Tp();
 	}
@@ -26,7 +26,7 @@ namespace Runtime {
 		Value(CppMetadata::Value const& val): value_type(val.type()) { setValue(val); }
 		Value(CppMetadata::Value const* val): value_type(val->type()) { setValue(*val); }
 		Value(CppMetadata::Type const& v_type): value_type(v_type) {}
-		Value(CppMetadata::Type const& v_type, Arguments const& args): value(valueConstructor<Tp>(args)), value_type(v_type) {}
+		Value(CppMetadata::Type const& v_type, CppMetadata::Arguments const& args): value(valueConstructor<Tp>(args)), value_type(v_type) {}
 		
 		virtual ~Value(){ }
 		
@@ -54,7 +54,7 @@ namespace Runtime {
 		Value(CppMetadata::Value const& val): value_type(val.type()) { setValue(val); }
 		Value(CppMetadata::Value const* val): value_type(val->type()) { setValue(*val); }
 		Value(CppMetadata::Type const& v_type): value_type(v_type) {}
-		Value(CppMetadata::Type const& v_type, Arguments const& args): value_type(v_type) {}
+		Value(CppMetadata::Type const& v_type, CppMetadata::Arguments const& args): value_type(v_type) {}
 		
 		virtual ~Value(){ }
 		
@@ -108,7 +108,7 @@ Value::operator Tp() const
 	return static_cast<CppMetadata::MultiValue<Tp> const&>(*this).get();
 }
 
-#define MD_VALUE_ENABLE_ARGS(type) namespace CppMetadata { namespace Runtime { template<> inline type valueConstructor<type>(Arguments const& args) { return type(args); } } }
+#define MD_VALUE_ENABLE_ARGS(type) namespace CppMetadata { namespace Runtime { template<> inline type valueConstructor<type>(CppMetadata::Arguments const& args) { return type(args); } } }
 	
 }
 
