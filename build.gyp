@@ -14,7 +14,7 @@
 	},
 	'target_defaults': {
 		"include_dirs" : [ 
-			'<(SHARED_INTERMEDIATE_DIR)/lib/duktape',
+			'lib/duktape',
 			'include'
 		],
 		'cflags': ['-DDUK_USE_CPP_EXCEPTIONS=1'],
@@ -91,7 +91,8 @@
 				"CPP-Metadata-lib"
 			],
 			'sources': [
-				'test/test.cpp'
+				'test/test_decl.cpp',
+				'test/test_main.cpp'
 			],
 		},
 		{

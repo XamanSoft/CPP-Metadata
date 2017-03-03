@@ -1,6 +1,7 @@
 #include <CppMetadata.hpp>
 #include <atomic>
 #include <map>
+#include <string>
 
 #ifdef _MD_USE_MUTEX
 #include <mutex>
@@ -15,6 +16,7 @@ std::mutex register_mutex;
 using namespace CppMetadata;
 
 std::atomic<int> type_id(0);
+std::atomic<int> object_id(0);
 
 struct TypeRegister
 {
@@ -25,13 +27,41 @@ struct TypeRegister
 	TypeRegister(int id, Type*type): id(id), type(type) {}
 };
 
-std::map<char const*, TypeRegister> type_map;
+struct ObjectRegister
+{
+	int id;
+	Runtime::object_create_t create;
+	
+	ObjectRegister(): id(0), create(nullptr){}
+	ObjectRegister(int id, Runtime::object_create_t create): id(id), create(create) {}
+};
+
+static std::map<std::string, TypeRegister>* type_map{nullptr};
+static std::map<std::string, ObjectRegister>* object_map{nullptr};
+
+extern "C" int registerObject(char const* name, Runtime::object_create_t create) {
+	_MD_MUTEX_LOCK;
+	int id = ++object_id;
+	if (!object_map) object_map = new std::map<std::string, ObjectRegister>();
+	(*object_map)[name] = ObjectRegister(id, create);
+	_MD_MUTEX_UNLOCK;
+	return id;
+}
+
+extern "C" CppMetadata::Object* retriveObject(char const* name, CppMetadata::Arguments const& args) {
+	_MD_MUTEX_LOCK;
+	if (!object_map) return nullptr;
+	Object* ret = (*object_map)[name].create(args);
+	_MD_MUTEX_UNLOCK;
+	return ret;
+}
 
 extern "C" int registerType(char const* name, Type& type)
 {
 	_MD_MUTEX_LOCK;
 	int id = ++type_id;
-	type_map[name] = TypeRegister(id, &type);
+	if (!type_map) type_map = new std::map<std::string, TypeRegister>();
+	(*type_map)[name] = TypeRegister(id, &type);
 	_MD_MUTEX_UNLOCK;
 	return id;
 }
@@ -39,7 +69,8 @@ extern "C" int registerType(char const* name, Type& type)
 extern "C" Type& retriveType(char const* name)
 {
 	_MD_MUTEX_LOCK;
-	Type* ret = type_map[name].type;
+	if (!type_map) type_map = new std::map<std::string, TypeRegister>();
+	Type* ret = (*type_map)[name].type;
 	_MD_MUTEX_UNLOCK;
 	return *ret;
 }
