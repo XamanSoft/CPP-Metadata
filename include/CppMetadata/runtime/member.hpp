@@ -26,30 +26,9 @@ void registerMember(ObjTp* object, char const* const name, CppMetadata::Member* 
 	object->members[name] = member;
 }
 
-#ifdef _MD_OBJECT_DECL
 
-#define MD_OBJECT_PROPERTY(type, name) CppMetadata::Runtime::Property<object_self_t, type> name{this,#name};
-#define MD_OBJECT_PROPERTY_GS(type, name, ...) CppMetadata::Runtime::Property<object_self_t, type> name{this,#name,__VA_ARGS__};
-
-#define MD_OBJECT_FUNCTION_NAME(name) _md_object_function_##name
-
-#define MD_OBJECT_FUNCTION(type, name, ...) \
-	CppMetadata::Runtime::apply_args<CppMetadata::Runtime::Function,object_self_t, type, type(__VA_ARGS__)>::Type name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
-	type MD_OBJECT_FUNCTION_NAME(name)(__VA_ARGS__)
-
-#define MD_OBJECT_FUNCTION_NP(type, name) \
-	CppMetadata::Runtime::Function<object_self_t, type> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
-	type MD_OBJECT_FUNCTION_NAME(name)()
-
-#define MD_OBJECT_FUNCTION_NR(name, ...) \
-	CppMetadata::Runtime::apply_args_nr<CppMetadata::Runtime::FunctionNR,object_self_t, void(__VA_ARGS__)>::Type name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
-	void MD_OBJECT_FUNCTION_NAME(name)(__VA_ARGS__)
-
-#define MD_OBJECT_FUNCTION_NR_NP(name) \
-	CppMetadata::Runtime::FunctionNR<object_self_t, type> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
-	void MD_OBJECT_FUNCTION_NAME(name)()
-	
-#define MD_OBJECT_FUNCTION_BODY(body) { body; }
+// Object member implementation
+namespace Impl {
 
 template<template<typename...> class C,typename A1, typename A2,typename T>
 struct apply_args;
@@ -74,6 +53,8 @@ class Function: public CppMetadata::Member
 {
 public:
 	typedef ret_val (ObjTp::*function_t)(params_type...);
+	
+	int type() const { return CppMetadata::Member::FUNCTION; };
 private:
 	struct unpack_caller
 	{
@@ -143,6 +124,8 @@ class FunctionNR: public CppMetadata::Member
 {
 public:
 	typedef void (ObjTp::*function_t)(params_type...);
+	
+	int type() const { return CppMetadata::Member::FUNCTION; };
 private:
 	struct unpack_caller
 	{
@@ -209,7 +192,7 @@ class Property: public CppMetadata::Member
 private:
 	char const* const property_name;
 	Tp property_value{Tp()};
-	ObjTp* object;	
+	ObjTp* object;
 public:
 	typedef Tp (ObjTp::*getter_t)(int const&);
 	typedef void (ObjTp::*setter_t)(Tp const&);
@@ -221,6 +204,7 @@ public:
 		property_name(name), object(obj), getter(get), setter(set) { registerMember<ObjTp>(object,name,this); }
 	
 	char const* const name() const { return property_name; }
+	int type() const { return CppMetadata::Member::PROPERTY; };
     
 	CppMetadata::Value* action(CppMetadata::Value const& value)
 	{		
@@ -264,25 +248,12 @@ public:
 	}
 };
 
-#else
+}
 
-#define MD_OBJECT_PROPERTY(type, name) CppMetadata::Runtime::Property<type> name{this,#name};
-#define MD_OBJECT_PROPERTY_GS(type, name, ...) CppMetadata::Runtime::Property<type> name{this,#name};
 
-#define MD_OBJECT_FUNCTION(type, name, ...) \
-	CppMetadata::Runtime::apply_args<CppMetadata::Runtime::Function, type, type(__VA_ARGS__)>::Type name{this,#name}
-
-#define MD_OBJECT_FUNCTION_NP(type, name) \
-	CppMetadata::Runtime::Function<type> name{this,#name}
-
-#define MD_OBJECT_FUNCTION_NR(name, ...) \
-	CppMetadata::Runtime::apply_args_nr<CppMetadata::Runtime::FunctionNR, void(__VA_ARGS__)>::Type name{this,#name}
-
-#define MD_OBJECT_FUNCTION_NR_NP(name) \
-	CppMetadata::Runtime::FunctionNR<type> name{this,#name}
+// Object member access
+namespace Access {
 	
-#define MD_OBJECT_FUNCTION_BODY(body)
-
 template<template<typename...> class C,typename A1, typename T>
 struct apply_args;
 
@@ -313,6 +284,7 @@ public:
 	Function(CppMetadata::Object* obj, char const* const name): function_name(name), object(obj) { }
 	
 	char const* const name() const { return function_name; }
+	int type() const { return object->member(function_name).type(); };
 	CppMetadata::Value* action(CppMetadata::Value const& value) { return object->member(function_name).action(value); }
 	CppMetadata::Value* action(CppMetadata::Value const& value) const { return object->member(function_name).action(value); }
 
@@ -351,6 +323,7 @@ public:
 	FunctionNR(CppMetadata::Object* obj, char const* const name): function_name(name), object(obj) { }
 	
 	char const* const name() const { return function_name; }
+	int type() const { return object->member(function_name).type(); };
 	CppMetadata::Value* action(CppMetadata::Value const& value) { return object->member(function_name).action(value); }
 	CppMetadata::Value* action(CppMetadata::Value const& value) const { return object->member(function_name).action(value); }
 	
@@ -382,7 +355,8 @@ public:
 		property_name(name), obj(obj) { }
 	
 	char const* const name() const { return property_name; }
-    
+    int type() const { return obj->member(property_name).type(); };
+	
 	CppMetadata::Value* action(CppMetadata::Value const& value)
 	{
 		return obj->member(property_name).action(value);
@@ -410,7 +384,7 @@ public:
 	}
 };
 
-#endif
+}
 	
 }
 

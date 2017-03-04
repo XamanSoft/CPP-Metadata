@@ -1,4 +1,4 @@
-#define _MD_OBJECT_DECL
+#define _TEST_DECL
 #include "test.hpp"
 
 using namespace CppMetadata::Runtime;

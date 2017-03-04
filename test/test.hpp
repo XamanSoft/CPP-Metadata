@@ -1,5 +1,12 @@
+#ifndef _TEST_HPP
+#define _TEST_HPP
+
 #include <CppMetadata.hpp>
 #include <iostream>
+
+#ifdef _TEST_DECL
+#include <CppMetadata/object_impl.hpp>
+#endif
 
 #ifdef _MD_OBJECT_DECL
 namespace CppMetadata {
@@ -24,5 +31,8 @@ private:
 };
 
 #ifdef _MD_OBJECT_DECL
+#include <CppMetadata/object_defs.hpp>
 }}
+#endif
+
 #endif
