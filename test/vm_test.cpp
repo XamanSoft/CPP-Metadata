@@ -1,11 +1,15 @@
 #include <CppMetadata.hpp>
 #include <iostream>
+#include <string>
 
 int main()
 {
 	CppMetadata::VM vm;
+	std::string code;
 	
-	CppMetadata::Runtime::ValuePtr<double> num = vm.execute("function test() { return 123.456; }", CppMetadata::VM::IT_CODE);
+	std::cout << "Enter JS Code: ";
+	std::getline(std::cin, code);
+	CppMetadata::Runtime::ValuePtr<double> num = vm.execute(code.c_str(), CppMetadata::VM::IT_CODE);
 	if (!num.isNull())
 		std::cout << "value " << (double)num << std::endl;
 	else
