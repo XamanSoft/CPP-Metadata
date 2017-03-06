@@ -75,9 +75,9 @@ namespace Runtime {
 		ValuePtr() {}
 		ValuePtr(Tp const& val): value_ptr(new Runtime::Value<Tp>(val)) {}
 		ValuePtr(CppMetadata::MultiValue<Tp>* v_ptr): value_ptr(v_ptr) {}
-		ValuePtr(CppMetadata::Value* v_ptr) { if (v_ptr->type().id() == retriveRuntimeType<Tp>().id()) value_ptr = static_cast<CppMetadata::MultiValue<Tp>*>(v_ptr); }
+		ValuePtr(CppMetadata::Value* v_ptr) { if (v_ptr && (v_ptr->type().id() == retriveRuntimeType<Tp>().id())) value_ptr = static_cast<CppMetadata::MultiValue<Tp>*>(v_ptr); }
 		
-		virtual ~ValuePtr(){ value_ptr->release(); }
+		virtual ~ValuePtr(){ if (value_ptr) value_ptr->release(); }
 		
 		CppMetadata::Type const& type() const { return value_ptr->type(); }
     
@@ -91,6 +91,8 @@ namespace Runtime {
 
 		Tp const& operator=(Tp const& val) { value_ptr->set(val); return value_ptr->get(); }
 		operator Tp() const { return value_ptr->get(); };
+		
+		bool isNull() { return value_ptr == nullptr; }
 		
 		void operator=(CppMetadata::MultiValue<Tp>* v_ptr) { value_ptr = v_ptr; }
 	};
