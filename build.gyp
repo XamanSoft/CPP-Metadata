@@ -96,11 +96,22 @@
 			],
 		},
 		{
+			'target_name': 'vm_test',
+			'type': 'executable',
+			"dependencies": [
+				"CPP-Metadata-lib"
+			],
+			'sources': [
+				'test/vm_test.cpp'
+			],
+		},
+		{
 			'target_name': 'CPP-Metadata-lib',
 			'type': 'static_library',
 			'sources': [
 				'lib/duktape/duktape.c',
-				'src/runtime.cpp'
+				'src/runtime.cpp',
+				'src/vm.cpp',
 			],
 		},
 	],

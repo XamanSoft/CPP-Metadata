@@ -69,7 +69,7 @@ namespace Runtime {
 	template <typename Tp>
 	class ValuePtr: public CppMetadata::MultiValue<Tp>
 	{
-		CppMetadata::MultiValue<Tp>* value_ptr{nullptr};
+		mutable CppMetadata::MultiValue<Tp>* value_ptr{nullptr};
 
 	public:
 		ValuePtr() {}

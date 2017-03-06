@@ -1,7 +1,6 @@
-#ifndef _CPPMETADATA_OBJECT_IMPL_HPP
-#define _CPPMETADATA_OBJECT_IMPL_HPP
-
+#ifndef _MD_OBJECT_DECL
 #define _MD_OBJECT_DECL
+#endif
 
 #ifdef MD_OBJECT
 #undef MD_OBJECT
@@ -16,14 +15,8 @@
 
 #include <map>
 
-#define MD_OBJECT_REGDEC(object) static CppMetadata::Runtime::RegisterObject<object> MD_OBJECT_UNIQUE(register_type_,object)(#object)
-#define MD_OBJECT_REGISTER_ARGS(object) MD_OBJECT_REGDEC(object); CppMetadata::Object* object::create(CppMetadata::Arguments const& args) { return new object(args); }
-#define MD_OBJECT_REGISTER(object) MD_OBJECT_REGDEC(object); CppMetadata::Object* object::create(CppMetadata::Arguments const& args) { return new object(); }
-
 #define MD_OBJECT(o_name) \
     private:\
-	static CppMetadata::Object* create(CppMetadata::Arguments const& args);\
-	friend class CppMetadata::Runtime::RegisterObject<o_name>;\
     CppMetadata::Object::ObjectInfo o_info{ #o_name, nullptr, this }; \
     std::map<const char*,CppMetadata::Member*> members;\
     typedef o_name object_self_t;\
@@ -61,5 +54,3 @@
 	void MD_OBJECT_FUNCTION_NAME(name)()
 	
 #define MD_OBJECT_FUNCTION_BODY(body) { body; }
-
-#endif

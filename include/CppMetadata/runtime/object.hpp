@@ -4,25 +4,7 @@
 #define MD_OBJECT_CONCAT(X,Y) X##Y  // helper macro
 #define MD_OBJECT_UNIQUE(X,Y) MD_OBJECT_CONCAT(X,Y)
 
-#define MD_OBJECT_DECLARE(object) namespace CppMetadata { namespace Runtime {	template <> inline CppMetadata::object& retriveRuntimeType<object>() { return CppMetadata::Runtime::retriveType(#object); } } }
-
-namespace CppMetadata {
-namespace Runtime {	
-	typedef CppMetadata::Object* (*object_create_t)(CppMetadata::Arguments const& args);
-
-	extern "C" CppMetadata::Object* retriveObject(char const* name, CppMetadata::Arguments const& args);
-	extern "C" int registerObject(char const* name, object_create_t oc); // int = object-id
-	
-	template<typename obj>
-	struct RegisterObject { RegisterObject(const char* name) { registerObject(name, obj::create); }  };
-	
-	template <typename Tp>
-	inline CppMetadata::Object& retriveRuntimeObject()
-	{
-		throw std::invalid_argument("Use MD_OBJECT_DECLARE macro to declare a object!");
-	}
-	
-}
-}
+#define MD_OBJECT_REGISTER(object) CppMetadata::Object* _md_object_new_##object(CppMetadata::Arguments const& args){ return new object(); } 
+#define MD_OBJECT_REGISTER_ARGS(object) CppMetadata::Object* _md_object_new_##object(CppMetadata::Arguments const& args){ return new object(args); } 
 
 #endif

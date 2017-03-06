@@ -18,6 +18,6 @@
 #include <CppMetadata/runtime/object.hpp>
 
 // Object definitions/implementations
-//#include <CppMetadata/vm.hpp>
+#include <CppMetadata/vm.hpp>
 
 #endif

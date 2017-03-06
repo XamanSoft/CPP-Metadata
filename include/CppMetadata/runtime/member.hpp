@@ -96,7 +96,7 @@ public:
 	CppMetadata::Value* action(CppMetadata::Value const& value) { CppMetadata::Arguments* args = value; return unpack_caller()(object, function, *args); }
 	CppMetadata::Value* action(CppMetadata::Value const& value) const { CppMetadata::Arguments const* args = value; return unpack_caller()(object, function, *args); }
 
-	ret_val operator()(params_type&&... params)
+	ret_val operator()(params_type... params)
 	{
 		Runtime::ArgumentsBuild arguments(params...);
 		Runtime::Value<CppMetadata::Arguments*> value_arg(&arguments);
@@ -107,7 +107,7 @@ public:
 		return res;
 	}
 	
-	ret_val operator()(params_type&&... params) const
+	ret_val operator()(params_type... params) const
 	{
 		Runtime::ArgumentsBuild arguments(params...);
 		Runtime::Value<CppMetadata::Arguments const*> value_arg(&arguments);
@@ -169,7 +169,7 @@ public:
 	CppMetadata::Value* action(CppMetadata::Value const& value) { CppMetadata::Arguments* args = value; return unpack_caller()(object, function, *args); }
 	CppMetadata::Value* action(CppMetadata::Value const& value) const { CppMetadata::Arguments const* args = value; return unpack_caller()(object, function, *args); }
 	
-	void operator()(params_type&&... params)
+	void operator()(params_type... params)
 	{
 		Runtime::ArgumentsBuild arguments(params...);
 		Runtime::Value<CppMetadata::Arguments*> value_arg(&arguments);
@@ -177,7 +177,7 @@ public:
 		action(value_arg)->release();
 	}
 	
-	void operator()(params_type&&... params) const
+	void operator()(params_type... params) const
 	{
 		Runtime::ArgumentsBuild arguments(params...);
 		Runtime::Value<CppMetadata::Arguments const*> value_arg(&arguments);
@@ -288,7 +288,7 @@ public:
 	CppMetadata::Value* action(CppMetadata::Value const& value) { return object->member(function_name).action(value); }
 	CppMetadata::Value* action(CppMetadata::Value const& value) const { return object->member(function_name).action(value); }
 
-	ret_val operator()(params_type&&... params)
+	ret_val operator()(params_type... params)
 	{
 		Runtime::ArgumentsBuild arguments(params...);
 		Runtime::Value<CppMetadata::Arguments*> value_arg(&arguments);
@@ -299,7 +299,7 @@ public:
 		return res;
 	}
 	
-	ret_val operator()(params_type&&... params) const
+	ret_val operator()(params_type... params) const
 	{
 		Runtime::ArgumentsBuild arguments(params...);
 		Runtime::Value<CppMetadata::Arguments const*> value_arg(&arguments);
@@ -327,7 +327,7 @@ public:
 	CppMetadata::Value* action(CppMetadata::Value const& value) { return object->member(function_name).action(value); }
 	CppMetadata::Value* action(CppMetadata::Value const& value) const { return object->member(function_name).action(value); }
 	
-	void operator()(params_type&&... params)
+	void operator()(params_type... params)
 	{
 		Runtime::ArgumentsBuild arguments(params...);
 		Runtime::Value<CppMetadata::Arguments*> value_arg(&arguments);
@@ -335,7 +335,7 @@ public:
 		action(value_arg)->release();
 	}
 	
-	void operator()(params_type&&... params) const
+	void operator()(params_type... params) const
 	{
 		Runtime::ArgumentsBuild arguments(params...);
 		Runtime::Value<CppMetadata::Arguments const*> value_arg(&arguments);

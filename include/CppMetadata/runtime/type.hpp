@@ -71,6 +71,10 @@ MD_DECLARE_TYPE(long double);
 
 MD_DECLARE_TYPE(CppMetadata::Arguments*);
 MD_DECLARE_TYPE(CppMetadata::Arguments const*);
+MD_DECLARE_TYPE(CppMetadata::Value*);
+MD_DECLARE_TYPE(CppMetadata::Value const*);
+MD_DECLARE_TYPE(CppMetadata::Object*);
+MD_DECLARE_TYPE(CppMetadata::Object const*);
 
 #include "value.hpp"
 
