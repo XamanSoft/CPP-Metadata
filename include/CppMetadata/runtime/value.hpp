@@ -23,8 +23,8 @@ namespace Runtime {
 	public:
 		Value(): value_type(retriveRuntimeType<Tp>()) {}
 		Value(Tp const& val): value(val), value_type(retriveRuntimeType<Tp>()) {}
-		Value(CppMetadata::Value const& val): value_type(val.type()) { setValue(val); }
-		Value(CppMetadata::Value const* val): value_type(val->type()) { setValue(*val); }
+		Value(CppMetadata::Value const& val): value_type(val.type()) { action(val); }
+		Value(CppMetadata::Value const* val): value_type(val->type()) { action(*val); }
 		Value(CppMetadata::Type const& v_type): value_type(v_type) {}
 		Value(CppMetadata::Type const& v_type, CppMetadata::Arguments const& args): value(valueConstructor<Tp>(args)), value_type(v_type) {}
 		
@@ -32,13 +32,13 @@ namespace Runtime {
 		
 		CppMetadata::Type const& type() const { return value_type; }
     
-		CppMetadata::Value const& getValue() const { return *this; }
-		void setValue(CppMetadata::Value const& val) { if (value_type.isEqual(val.type())) value = static_cast<CppMetadata::Runtime::Value<Tp> const &>(val).value; }
+		CppMetadata::Value const& action(CppMetadata::Value const& val) const { return *this; }
+		CppMetadata::Value const& action(CppMetadata::Value const& val) { if (value_type.isEqual(val.type())) value = static_cast<CppMetadata::Runtime::Value<Tp> const &>(val).value; return *this; }
 		
 		void release() const { ::delete this; }
-		
-		Tp const& get() const { return value; }
-		void set(Tp const& val) { value = val; }
+
+		Tp const& act(Tp const& val) { value = val; return value; }
+		Tp const& act(Tp const& val) const { return value; }
 
 		Tp const& operator=(Tp const& val) { return value = val; }
 		operator Tp() const { return value; };
@@ -51,17 +51,17 @@ namespace Runtime {
 
 	public:
 		Value(): value_type(retriveRuntimeType<void>()) {}
-		Value(CppMetadata::Value const& val): value_type(val.type()) { setValue(val); }
-		Value(CppMetadata::Value const* val): value_type(val->type()) { setValue(*val); }
+		Value(CppMetadata::Value const& val): value_type(val.type()) { action(val); }
+		Value(CppMetadata::Value const* val): value_type(val->type()) { action(*val); }
 		Value(CppMetadata::Type const& v_type): value_type(v_type) {}
 		Value(CppMetadata::Type const& v_type, CppMetadata::Arguments const& args): value_type(v_type) {}
 		
 		virtual ~Value(){ }
 		
 		CppMetadata::Type const& type() const { return value_type; }
-    
-		CppMetadata::Value const& getValue() const { return *this; }
-		void setValue(CppMetadata::Value const& val) { }
+    	
+		CppMetadata::Value const& action(CppMetadata::Value const& val) const { return *this; }
+		CppMetadata::Value const& action(CppMetadata::Value const& val) { return *this; }
 		
 		void release() const { ::delete this; }
 	};
@@ -80,17 +80,17 @@ namespace Runtime {
 		virtual ~ValuePtr(){ if (value_ptr) value_ptr->release(); }
 		
 		CppMetadata::Type const& type() const { return value_ptr->type(); }
-    
-		CppMetadata::Value const& getValue() const { return *value_ptr; }
-		void setValue(CppMetadata::Value const& val) { value_ptr->setValue(val); }
+    		
+		CppMetadata::Value const& action(CppMetadata::Value const& val) const { return *value_ptr; }
+		CppMetadata::Value const& action(CppMetadata::Value const& val) { return value_ptr->action(val); }
 		
 		void release() const { value_ptr->release(); value_ptr = nullptr; }
 		
-		Tp const& get() const { return value_ptr->get(); }
-		void set(Tp const& val) { value_ptr->set(val); }
+		Tp const& act(Tp const& value) { return value_ptr->act(value); }
+		Tp const& act(Tp const& value) const { return value_ptr->act(); }
 
-		Tp const& operator=(Tp const& val) { value_ptr->set(val); return value_ptr->get(); }
-		operator Tp() const { return value_ptr->get(); };
+		Tp const& operator=(Tp const& val) { return value_ptr->act(val); }
+		operator Tp() const { return value_ptr->act(); };
 		
 		bool isNull() { return value_ptr == nullptr; }
 		
@@ -107,7 +107,7 @@ Tp const& Value::operator=(Tp const& val)
 template <typename Tp>
 Value::operator Tp() const
 {
-	return static_cast<CppMetadata::MultiValue<Tp> const&>(*this).get();
+	return static_cast<CppMetadata::MultiValue<Tp> const&>(*this).act();
 }
 
 #define MD_VALUE_ENABLE_ARGS(type) namespace CppMetadata { namespace Runtime { template<> inline type valueConstructor<type>(CppMetadata::Arguments const& args) { return type(args); } } }
