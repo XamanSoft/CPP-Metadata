@@ -28,7 +28,7 @@ public:
 		return i;
 	)
 	
-	MD_OBJECT_FUNCTION(show,int const& i)
+	MD_OBJECT_FUNCTION(void, show,int const& i)
 	MD_OBJECT_FUNCTION_BODY
 	(
 		std::cout << "show " << i << std::endl;
