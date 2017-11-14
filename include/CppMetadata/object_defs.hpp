@@ -35,14 +35,5 @@
 
 #define MD_OBJECT_FUNCTION(type, name, ...) \
 	CppMetadata::Runtime::Access::apply_args<CppMetadata::Runtime::Access::Function, type, type(__VA_ARGS__)>::Type name{this,#name}
-
-#define MD_OBJECT_FUNCTION_NP(type, name) \
-	CppMetadata::Runtime::Access::Function<type> name{this,#name}
-
-#define MD_OBJECT_FUNCTION_NR(name, ...) \
-	CppMetadata::Runtime::Access::apply_args_nr<CppMetadata::Runtime::Access::FunctionNR, void(__VA_ARGS__)>::Type name{this,#name}
-
-#define MD_OBJECT_FUNCTION_NR_NP(name) \
-	CppMetadata::Runtime::Access::FunctionNR<type> name{this,#name}
 	
 #define MD_OBJECT_FUNCTION_BODY(body)

@@ -40,17 +40,5 @@
 #define MD_OBJECT_FUNCTION(type, name, ...) \
 	CppMetadata::Runtime::Impl::apply_args<CppMetadata::Runtime::Impl::Function,object_self_t, type, type(__VA_ARGS__)>::Type name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
 	type MD_OBJECT_FUNCTION_NAME(name)(__VA_ARGS__)
-
-#define MD_OBJECT_FUNCTION_NP(type, name) \
-	CppMetadata::Runtime::Impl::Function<object_self_t, type> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
-	type MD_OBJECT_FUNCTION_NAME(name)()
-
-#define MD_OBJECT_FUNCTION_NR(name, ...) \
-	CppMetadata::Runtime::Impl::apply_args_nr<CppMetadata::Runtime::Impl::FunctionNR,object_self_t, void(__VA_ARGS__)>::Type name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
-	void MD_OBJECT_FUNCTION_NAME(name)(__VA_ARGS__)
-
-#define MD_OBJECT_FUNCTION_NR_NP(name) \
-	CppMetadata::Runtime::Impl::FunctionNR<object_self_t, type> name{this,#name,&object_self_t::MD_OBJECT_FUNCTION_NAME(name)};\
-	void MD_OBJECT_FUNCTION_NAME(name)()
 	
 #define MD_OBJECT_FUNCTION_BODY(body) { body; }

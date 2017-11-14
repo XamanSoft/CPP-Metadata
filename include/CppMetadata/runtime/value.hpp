@@ -140,15 +140,6 @@ struct apply_args<C, Arg1, Arg2, R(Args...) >
     typedef C<Arg1, Arg2, Args...> Type;
 };
 
-template<template<typename...> class C,typename A1, typename T>
-struct apply_args_nr;
-
-template<template<typename...> class C, typename Arg1,typename R,typename... Args>
-struct apply_args_nr<C, Arg1, R(Args...) >
-{
-    typedef C<Arg1, Args...> Type;
-};
-
 template <class ObjTp, typename ret_val, typename... params_type>
 class Function: public CppMetadata::Value
 {
@@ -226,7 +217,7 @@ public:
 };
 
 template <class ObjTp, typename... params_type>
-class FunctionNR: public CppMetadata::Value
+class Function<ObjTp, void, params_type...>: public CppMetadata::Value
 {
 	CppMetadata::Type const& value_type{retriveRuntimeType<void>()};
 public:
@@ -271,7 +262,7 @@ private:
 	ObjTp* object;
 	
 public:	
-	FunctionNR(ObjTp* obj, char const* const name, function_t func): function_name(name), function(func), object(obj) { registerMember<ObjTp>(object,name,this); }
+	Function(ObjTp* obj, char const* const name, function_t func): function_name(name), function(func), object(obj) { registerMember<ObjTp>(object,name,this); }
 	
 	void release() const {}
 	
@@ -378,15 +369,6 @@ struct apply_args<C, Arg1, R(Args...) >
     typedef C<Arg1, Args...> Type;
 };
 
-template<template<typename...> class C, typename T>
-struct apply_args_nr;
-
-template<template<typename...> class C,typename R,typename... Args>
-struct apply_args_nr<C, R(Args...) >
-{
-    typedef C<Args...> Type;
-};
-
 template <typename ret_val, typename... params_type>
 class Function: public CppMetadata::Value
 {
@@ -431,7 +413,7 @@ public:
 };
 
 template <typename... params_type>
-class FunctionNR: public CppMetadata::Value
+class Function<void, params_type...>: public CppMetadata::Value
 {
 private:
 	char const* const function_name;
@@ -439,7 +421,7 @@ private:
 	CppMetadata::Object* object;
 	
 public:	
-	FunctionNR(CppMetadata::Object* obj, char const* const name): function_name(name), object(obj) { }
+	Function(CppMetadata::Object* obj, char const* const name): function_name(name), object(obj) { }
 	
 	void release() const {}
 	
