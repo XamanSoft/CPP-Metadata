@@ -34,7 +34,7 @@ public:
 		std::cout << "show " << i << std::endl;
 	)
 	
-	MD_OBJECT_PROPERTY_GS(int,prop,&Test::prop_getter,&Test::prop_setter);
+	MD_OBJECT_PROPERTY(int,prop,&Test::prop_getter,&Test::prop_setter);
 	
 	int prop_getter(int const& value)
 	{
