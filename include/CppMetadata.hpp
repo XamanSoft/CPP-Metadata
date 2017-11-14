@@ -13,7 +13,6 @@
 #include <CppMetadata/runtime/type.hpp>
 #include <CppMetadata/runtime/value.hpp>
 #include <CppMetadata/runtime/arguments.hpp>
-#include <CppMetadata/runtime/member.hpp>
 #include <CppMetadata/runtime/object.hpp>
 
 // Object definitions/implementations
