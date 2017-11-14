@@ -16,7 +16,7 @@ public:
     virtual const ObjectInfo& objectInfo() const =0;
     virtual int memberCount() const =0;
     virtual bool hasMember(const char* m_name) const =0;
-    virtual Member& member(const char* m_name) const =0;
+    virtual Value& member(const char* m_name) const =0;
     
     virtual void release() =0;
 };

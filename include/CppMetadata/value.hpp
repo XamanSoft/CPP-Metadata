@@ -7,9 +7,14 @@ class Value
 {
 public:
     virtual Type const& type() const =0;
+	
+	enum RoleType { NONE =0, VALUE, FUNCTION };
+	
+	virtual char const* const name() const =0;
+	virtual int role() const =0;
 
-	virtual Value const& action(Value const& value) =0;
-	virtual Value const& action(Value const& value) const =0;
+	virtual Value* action(Value const& value) =0;
+	virtual Value const* action(Value const& value) const =0;
 	
 	virtual void release() const =0;
 	

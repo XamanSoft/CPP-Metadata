@@ -21,7 +21,7 @@ template <std::size_t N>
 using BuildIndices = typename build_indices<N>::type;
 
 template <class ObjTp>
-void registerMember(ObjTp* object, char const* const name, CppMetadata::Member* member)
+void registerMember(ObjTp* object, char const* const name, CppMetadata::Value* member)
 {
 	object->members[name] = member;
 }
@@ -49,12 +49,14 @@ struct apply_args_nr<C, Arg1, R(Args...) >
 };
 
 template <class ObjTp, typename ret_val, typename... params_type>
-class Function: public CppMetadata::Member
+class Function: public CppMetadata::Value
 {
+	CppMetadata::Type const& value_type{retriveRuntimeType<ret_val>()};
 public:
 	typedef ret_val (ObjTp::*function_t)(params_type...);
 	
-	int type() const { return CppMetadata::Member::FUNCTION; };
+	int role() const { return CppMetadata::Value::FUNCTION; }
+	CppMetadata::Type const& type() const { return value_type; }
 private:
 	struct unpack_caller
 	{
@@ -92,9 +94,12 @@ private:
 public:	
 	Function(ObjTp* obj, char const* const name, function_t func): function_name(name), function(func), object(obj) { registerMember<ObjTp>(object,name,this); }
 	
+	void release() const {}
+	
 	char const* const name() const { return function_name; }
+	
 	CppMetadata::Value* action(CppMetadata::Value const& value) { CppMetadata::Arguments* args = value; return unpack_caller()(object, function, *args); }
-	CppMetadata::Value* action(CppMetadata::Value const& value) const { CppMetadata::Arguments const* args = value; return unpack_caller()(object, function, *args); }
+	CppMetadata::Value const* action(CppMetadata::Value const& value) const { CppMetadata::Arguments const* args = value; return unpack_caller()(object, function, *args); }
 
 	ret_val operator()(params_type... params)
 	{
@@ -120,12 +125,14 @@ public:
 };
 
 template <class ObjTp, typename... params_type>
-class FunctionNR: public CppMetadata::Member
+class FunctionNR: public CppMetadata::Value
 {
+	CppMetadata::Type const& value_type{retriveRuntimeType<void>()};
 public:
 	typedef void (ObjTp::*function_t)(params_type...);
 	
-	int type() const { return CppMetadata::Member::FUNCTION; };
+	int role() const { return CppMetadata::Value::FUNCTION; };
+	CppMetadata::Type const& type() const { return value_type; }
 private:
 	struct unpack_caller
 	{
@@ -165,9 +172,12 @@ private:
 public:	
 	FunctionNR(ObjTp* obj, char const* const name, function_t func): function_name(name), function(func), object(obj) { registerMember<ObjTp>(object,name,this); }
 	
+	void release() const {}
+	
 	char const* const name() const { return function_name; }
+	
 	CppMetadata::Value* action(CppMetadata::Value const& value) { CppMetadata::Arguments* args = value; return unpack_caller()(object, function, *args); }
-	CppMetadata::Value* action(CppMetadata::Value const& value) const { CppMetadata::Arguments const* args = value; return unpack_caller()(object, function, *args); }
+	CppMetadata::Value const* action(CppMetadata::Value const& value) const { CppMetadata::Arguments const* args = value; return unpack_caller()(object, function, *args); }
 	
 	void operator()(params_type... params)
 	{
@@ -187,11 +197,12 @@ public:
 };
 
 template <class ObjTp, typename Tp>
-class Property: public CppMetadata::Member
+class Property: public CppMetadata::Value
 {
 private:
 	char const* const property_name;
 	Tp property_value{Tp()};
+	CppMetadata::Type const& value_type{retriveRuntimeType<Tp>()};
 	ObjTp* object;
 public:
 	typedef Tp (ObjTp::*getter_t)(int const&);
@@ -202,9 +213,12 @@ public:
 	
 	Property(ObjTp* obj, char const* const name, getter_t get = nullptr, setter_t set = nullptr):
 		property_name(name), object(obj), getter(get), setter(set) { registerMember<ObjTp>(object,name,this); }
+		
+	void release() const {}
 	
 	char const* const name() const { return property_name; }
-	int type() const { return CppMetadata::Member::PROPERTY; };
+	int role() const { return CppMetadata::Value::VALUE; }
+	CppMetadata::Type const& type() const { return value_type; }
     
 	CppMetadata::Value* action(CppMetadata::Value const& value)
 	{		
@@ -221,7 +235,7 @@ public:
 		return new Runtime::Value<Tp>(res);
 	}
 	
-	CppMetadata::Value* action(CppMetadata::Value const& value) const
+	CppMetadata::Value const* action(CppMetadata::Value const& value) const
 	{
 		Tp res = property_value;
 		
@@ -273,20 +287,24 @@ struct apply_args_nr<C, R(Args...) >
 };
 
 template <typename ret_val, typename... params_type>
-class Function: public CppMetadata::Member
+class Function: public CppMetadata::Value
 {
 private:
 	char const* const function_name;
-	CppMetadata::Member* member;
+	CppMetadata::Value* member;
 	CppMetadata::Object* object;
 	
 public:	
 	Function(CppMetadata::Object* obj, char const* const name): function_name(name), object(obj) { }
 	
+	void release() const {}
+	
 	char const* const name() const { return function_name; }
-	int type() const { return object->member(function_name).type(); };
+	int role() const { return object->member(function_name).role(); }
+	CppMetadata::Type const& type() const { return object->member(function_name).type(); }
+	
 	CppMetadata::Value* action(CppMetadata::Value const& value) { return object->member(function_name).action(value); }
-	CppMetadata::Value* action(CppMetadata::Value const& value) const { return object->member(function_name).action(value); }
+	CppMetadata::Value const* action(CppMetadata::Value const& value) const { return object->member(function_name).action(value); }
 
 	ret_val operator()(params_type... params)
 	{
@@ -312,20 +330,24 @@ public:
 };
 
 template <typename... params_type>
-class FunctionNR: public CppMetadata::Member
+class FunctionNR: public CppMetadata::Value
 {
 private:
 	char const* const function_name;
-	CppMetadata::Member* member;
+	CppMetadata::Value* member;
 	CppMetadata::Object* object;
 	
 public:	
 	FunctionNR(CppMetadata::Object* obj, char const* const name): function_name(name), object(obj) { }
 	
+	void release() const {}
+	
 	char const* const name() const { return function_name; }
-	int type() const { return object->member(function_name).type(); };
+	int role() const { return object->member(function_name).role(); }
+	CppMetadata::Type const& type() const { return object->member(function_name).type(); }
+	
 	CppMetadata::Value* action(CppMetadata::Value const& value) { return object->member(function_name).action(value); }
-	CppMetadata::Value* action(CppMetadata::Value const& value) const { return object->member(function_name).action(value); }
+	CppMetadata::Value const* action(CppMetadata::Value const& value) const { return object->member(function_name).action(value); }
 	
 	void operator()(params_type... params)
 	{
@@ -345,7 +367,7 @@ public:
 };
 
 template <typename Tp>
-class Property: public CppMetadata::Member
+class Property: public CppMetadata::Value
 {
 private:
 	char const* const property_name;
@@ -354,15 +376,18 @@ public:
 	Property(CppMetadata::Object* obj, char const* const name):
 		property_name(name), obj(obj) { }
 	
+	void release() const {}
+	
 	char const* const name() const { return property_name; }
-    int type() const { return obj->member(property_name).type(); };
+    int role() const { return obj->member(property_name).role(); }
+	CppMetadata::Type const& type() const { return obj->member(property_name).type(); }
 	
 	CppMetadata::Value* action(CppMetadata::Value const& value)
 	{
 		return obj->member(property_name).action(value);
 	}
 	
-	CppMetadata::Value* action(CppMetadata::Value const& value) const
+	CppMetadata::Value const* action(CppMetadata::Value const& value) const
 	{
 		return obj->member(property_name).action(value);
 	}
@@ -377,7 +402,7 @@ public:
 	
 	operator Tp() const
 	{
-		CppMetadata::Value* val = action(Runtime::Value<void>());
+		CppMetadata::Value const* val = action(Runtime::Value<void>());
 		Tp res = *val;
 		val->release();
 		return res;

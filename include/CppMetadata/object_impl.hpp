@@ -18,15 +18,15 @@
 #define MD_OBJECT(o_name) \
     private:\
     CppMetadata::Object::ObjectInfo o_info{ #o_name, nullptr, this }; \
-    std::map<const char*,CppMetadata::Member*> members;\
+    std::map<const char*,CppMetadata::Value*> members;\
     typedef o_name object_self_t;\
-	template <class ObjTp> friend void CppMetadata::Runtime::registerMember(ObjTp*, char const* const, CppMetadata::Member*);\
+	template <class ObjTp> friend void CppMetadata::Runtime::registerMember(ObjTp*, char const* const, CppMetadata::Value*);\
     public: \
     const CppMetadata::Object::ObjectInfo& objectInfo() const { return o_info; } \
     int memberCount() const { return members.size(); };\
     bool hasMember(const char* m_name) const { return members.count(m_name)>0; };\
-    CppMetadata::Member& member(const char* m_name) const { return *members.at(m_name); };\
-    CppMetadata::Member& operator[] (const char* m_name) const { return *members.at(m_name); };\
+    CppMetadata::Value& member(const char* m_name) const { return *members.at(m_name); };\
+    CppMetadata::Value& operator[] (const char* m_name) const { return *members.at(m_name); };\
     virtual void release() { delete this; }\
     private:
 	

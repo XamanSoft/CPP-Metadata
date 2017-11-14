@@ -27,13 +27,16 @@ namespace Runtime {
 		Value(CppMetadata::Value const* val): value_type(val->type()) { action(*val); }
 		Value(CppMetadata::Type const& v_type): value_type(v_type) {}
 		Value(CppMetadata::Type const& v_type, CppMetadata::Arguments const& args): value(valueConstructor<Tp>(args)), value_type(v_type) {}
-		
+
 		virtual ~Value(){ }
+
+		char const* const name() const { return nullptr; }
+		int role() const { return VALUE; }
 		
 		CppMetadata::Type const& type() const { return value_type; }
     
-		CppMetadata::Value const& action(CppMetadata::Value const& val) const { return *this; }
-		CppMetadata::Value const& action(CppMetadata::Value const& val) { if (value_type.isEqual(val.type())) value = static_cast<CppMetadata::Runtime::Value<Tp> const &>(val).value; return *this; }
+		CppMetadata::Value const* action(CppMetadata::Value const& val) const { return this; }
+		CppMetadata::Value* action(CppMetadata::Value const& val) { if (value_type.isEqual(val.type())) value = static_cast<CppMetadata::Runtime::Value<Tp> const &>(val).value; return this; }
 		
 		void release() const { ::delete this; }
 
@@ -58,10 +61,13 @@ namespace Runtime {
 		
 		virtual ~Value(){ }
 		
+		char const* const name() const { return "null"; }
+		int role() const { return NONE; }
+		
 		CppMetadata::Type const& type() const { return value_type; }
     	
-		CppMetadata::Value const& action(CppMetadata::Value const& val) const { return *this; }
-		CppMetadata::Value const& action(CppMetadata::Value const& val) { return *this; }
+		CppMetadata::Value const* action(CppMetadata::Value const& val) const { return this; }
+		CppMetadata::Value* action(CppMetadata::Value const& val) { return this; }
 		
 		void release() const { ::delete this; }
 	};
@@ -79,10 +85,13 @@ namespace Runtime {
 		
 		virtual ~ValuePtr(){ if (value_ptr) value_ptr->release(); }
 		
+		char const* const name() const { return value_ptr->name(); }
+		int role() const { return value_ptr->role(); }
+		
 		CppMetadata::Type const& type() const { return value_ptr->type(); }
     		
-		CppMetadata::Value const& action(CppMetadata::Value const& val) const { return *value_ptr; }
-		CppMetadata::Value const& action(CppMetadata::Value const& val) { return value_ptr->action(val); }
+		CppMetadata::Value const* action(CppMetadata::Value const& val) const { return value_ptr; }
+		CppMetadata::Value* action(CppMetadata::Value const& val) { return value_ptr->action(val); }
 		
 		void release() const { value_ptr->release(); value_ptr = nullptr; }
 		

@@ -24,8 +24,8 @@
     virtual const CppMetadata::Object::ObjectInfo& objectInfo() const { return object->objectInfo(); } \
     virtual int memberCount() const { if (object) return object->memberCount(); return 0; };\
     virtual bool hasMember(const char* m_name) const { if (object) return object->hasMember(m_name); return false; };\
-    virtual CppMetadata::Member& member(const char* m_name) const { return object->member(m_name); };\
-    virtual CppMetadata::Member& operator[] (const char* m_name) const { return object->member(m_name); };\
+    virtual CppMetadata::Value& member(const char* m_name) const { return object->member(m_name); };\
+    virtual CppMetadata::Value& operator[] (const char* m_name) const { return object->member(m_name); };\
     virtual ~o_name() { if (object) object->release(); } \
 	virtual void release() { if (object) object->release(); object = nullptr; } \
     private:

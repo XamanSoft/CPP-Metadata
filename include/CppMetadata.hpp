@@ -5,7 +5,6 @@
 #include <CppMetadata/type.hpp>
 #include <CppMetadata/value.hpp>
 #include <CppMetadata/arguments.hpp>
-#include <CppMetadata/member.hpp>
 #include <CppMetadata/object.hpp>
 
 #include <CppMetadata/object_defs.hpp>
