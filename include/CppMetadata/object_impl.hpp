@@ -30,8 +30,7 @@
     virtual void release() { delete this; }\
     private:
 	
-#define MD_OBJECT_PROPERTY(type, name) CppMetadata::Runtime::Impl::Property<object_self_t, type> name{this,#name};
-#define MD_OBJECT_PROPERTY_GS(type, name, ...) CppMetadata::Runtime::Impl::Property<object_self_t, type> name{this,#name,__VA_ARGS__};
+#define MD_OBJECT_PROPERTY(type, name, ...) CppMetadata::Runtime::Impl::Property<object_self_t, type> name{this,#name,__VA_ARGS__};
 
 #ifndef MD_OBJECT_FUNCTION_NAME
 #define MD_OBJECT_FUNCTION_NAME(name) _md_object_function_##name

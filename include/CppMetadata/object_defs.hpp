@@ -30,8 +30,7 @@
 	virtual void release() { if (object) object->release(); object = nullptr; } \
     private:
 	
-#define MD_OBJECT_PROPERTY(type, name) CppMetadata::Runtime::Access::Property<type> name{this,#name};
-#define MD_OBJECT_PROPERTY_GS(type, name, ...) CppMetadata::Runtime::Access::Property<type> name{this,#name};
+#define MD_OBJECT_PROPERTY(type, name, ...) CppMetadata::Runtime::Access::Property<type> name{this,#name};
 
 #define MD_OBJECT_FUNCTION(type, name, ...) \
 	CppMetadata::Runtime::Access::apply_args<CppMetadata::Runtime::Access::Function, type, type(__VA_ARGS__)>::Type name{this,#name}

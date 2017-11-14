@@ -297,7 +297,7 @@ private:
 	CppMetadata::Type const& value_type{retriveRuntimeType<Tp>()};
 	ObjTp* object;
 public:
-	typedef Tp (ObjTp::*getter_t)(int const&);
+	typedef Tp (ObjTp::*getter_t)(Tp const&);
 	typedef void (ObjTp::*setter_t)(Tp const&);
 	
 	getter_t getter{nullptr};
@@ -314,10 +314,11 @@ public:
     
 	CppMetadata::Value* action(CppMetadata::Value const& value)
 	{		
-		if (value.type().isNotEqual(Runtime::Type<void>()) && setter != nullptr)
+		if (value.type().isNotEqual(Runtime::Type<void>()))
 		{
 			property_value = value;
-			(object->*setter)(property_value);
+			if (setter != nullptr)
+				(object->*setter)(property_value);
 		}
 		
 		Tp res = property_value;

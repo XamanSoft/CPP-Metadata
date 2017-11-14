@@ -8,6 +8,6 @@ int main()
 	test.show(test.prop);
 	test.prop = 3;
 	test.show(test.prop);
-	
+
 	return 0;
 }
