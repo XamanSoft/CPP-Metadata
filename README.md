@@ -16,7 +16,7 @@ class Test: public CppMetadata::Object
 	MD_OBJECT(Test);
 
 public:
-	MD_OBJECT_FUNCTION_NP(char const*,name)
+	MD_OBJECT_FUNCTION(char const*,name)
 	MD_OBJECT_FUNCTION_BODY
 	(
 		return o_info.name;
@@ -28,7 +28,7 @@ public:
 		return i;
 	)
 	
-	MD_OBJECT_FUNCTION_NR(show,int const& i)
+	MD_OBJECT_FUNCTION(show,int const& i)
 	MD_OBJECT_FUNCTION_BODY
 	(
 		std::cout << "show " << i << std::endl;
