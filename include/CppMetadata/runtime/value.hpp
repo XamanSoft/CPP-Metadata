@@ -7,26 +7,105 @@ class Type;
 class Arguments;
 
 namespace Runtime {
-	
+
 	template <typename Tp>
 	inline Tp valueConstructor(CppMetadata::Arguments const& args)
 	{
 		return Tp();
 	}
 	
-	template <typename Tp>
-	class Value: public CppMetadata::MultiValue<Tp>
+	template <std::size_t... Indices>
+	struct indices {
+		using next = indices<Indices..., sizeof...(Indices)>;
+	};
+	template <std::size_t N>
+	struct build_indices {
+		using type = typename build_indices<N-1>::type::next;
+	};
+	template <>
+	struct build_indices<0> {
+		using type = indices<>;
+	};
+	template <std::size_t N>
+	using BuildIndices = typename build_indices<N>::type;
+	
+	template <typename... params_type>
+	class ValueCapsule {
+		struct IV { virtual ~IV() {} };
+		
+		template <typename Tp>
+		struct IValue: public IV {
+			Tp value;
+			
+			IValue(Tp value = Tp()): value(value) {}
+		};
+		
+		IV* contents[sizeof...(params_type)];
+		
+		template<class T, class... Args>
+		void Build(int index, T head, Args... params) 
+		{ 
+			if (contents[index] == nullptr)
+				contents[index] = new IValue<T>;
+			static_cast<IValue<T>*>(contents[index])->value = head;
+			Build(index+1, params...);
+		}
+
+		template<class T>
+		void Build(int index, T head)
+		{
+			if (contents[index] == nullptr)
+				contents[index] = new IValue<T>;
+			static_cast<IValue<T> *>(contents[index])->value = head;
+		}
+		
+		void Build(int index) {}
+
+	public:
+		ValueCapsule(): contents() { }
+		
+		ValueCapsule(params_type... params): contents()
+		{
+			Build(0, params...);
+		}
+		
+		virtual ~ValueCapsule()
+		{
+			for (IV*& n : contents) { delete n; }
+		}
+		
+		template <typename Tp>
+		inline Tp const& get(int index) const
+		{
+			return static_cast<IValue<Tp>*>(contents[index])->value;
+		}
+		
+		template <typename Tp>
+		inline Tp const& set(int index, Tp value)
+		{
+			return static_cast<IValue<Tp>*>(contents[index])->value = value;
+		}
+		
+		inline ValueCapsule& operator()(params_type... params)
+		{
+			Build(0, params...);
+			return *this;
+		}
+	};
+	
+	template <typename... params_type>
+	class Value: public CppMetadata::MultiValue<params_type...>
 	{
-		Tp value{Tp()};
+		ValueCapsule<params_type...> value;
 		CppMetadata::Type const& value_type;
 
 	public:
-		Value(): value_type(retriveRuntimeType<Tp>()) {}
-		Value(Tp const& val): value(val), value_type(retriveRuntimeType<Tp>()) {}
+		Value(): value_type(retriveRuntimeType<Type<0>>()) {}
+		Value(Type<0> const& val): value(val), value_type(retriveRuntimeType<Type<0>>()) {}
 		Value(CppMetadata::Value const& val): value_type(val.type()) { action(val); }
 		Value(CppMetadata::Value const* val): value_type(val->type()) { action(*val); }
 		Value(CppMetadata::Type const& v_type): value_type(v_type) {}
-		Value(CppMetadata::Type const& v_type, CppMetadata::Arguments const& args): value(valueConstructor<Tp>(args)), value_type(v_type) {}
+		Value(CppMetadata::Type const& v_type, CppMetadata::Arguments const& args): value(valueConstructor<Type<0>>(args)), value_type(v_type) {}
 
 		virtual ~Value(){ }
 
@@ -36,15 +115,15 @@ namespace Runtime {
 		CppMetadata::Type const& type() const { return value_type; }
     
 		CppMetadata::Value const* action(CppMetadata::Value const& val) const { return this; }
-		CppMetadata::Value* action(CppMetadata::Value const& val) { if (value_type.isEqual(val.type())) value = static_cast<CppMetadata::Runtime::Value<Tp> const &>(val).value; return this; }
+		CppMetadata::Value* action(CppMetadata::Value const& val) { if (value_type.isEqual(val.type())) value(static_cast<CppMetadata::Runtime::Value<Type<0>> const &>(val).value.get<Type<0>>(0)); return this; }
 		
 		void release() const { ::delete this; }
 
-		Tp const& act() const { return value; }
-		Tp const& act(Tp const& val) { value = val; return value; }
+		Type<0> const& act() const { return value.get<Type<0>>(0); }
+		Type<0> const& act(Type<0> const& val) { return value(val).get<Type<0>>(0); }
 
-		Tp const& operator=(Tp const& val) { return value = val; }
-		operator Tp() const { return value; };
+		Type<0> const& operator=(Type<0> const& val) { return value(val).get<Type<0>>(0); }
+		operator Type<0>() const { return value.get<Type<0>>(0); };
 	};
 	
 	template <>
@@ -105,21 +184,6 @@ namespace Runtime {
 		
 		void operator=(CppMetadata::MultiValue<Tp>* v_ptr) { value_ptr = v_ptr; }
 	};
-	
-template <std::size_t... Indices>
-struct indices {
-	using next = indices<Indices..., sizeof...(Indices)>;
-};
-template <std::size_t N>
-struct build_indices {
-	using type = typename build_indices<N-1>::type::next;
-};
-template <>
-struct build_indices<0> {
-	using type = indices<>;
-};
-template <std::size_t N>
-using BuildIndices = typename build_indices<N>::type;
 
 template <class ObjTp>
 void registerMember(ObjTp* object, char const* const name, CppMetadata::Value* member)
@@ -494,7 +558,7 @@ public:
 };
 
 }
-	
+
 }
 
 template <typename Tp>
