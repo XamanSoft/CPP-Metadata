@@ -31,8 +31,8 @@ template <typename Tp>
 class MultiValue: public Value
 {
 public:	
-	virtual Tp const& act(Tp const& value = Tp()) =0;
-	virtual Tp const& act(Tp const& value = Tp()) const =0;
+	virtual Tp const& act() const =0;
+	virtual Tp const& act(Tp const& value) =0;
 	
 	virtual Tp const& operator=(Tp const& val) =0;
 	virtual operator Tp() const =0;

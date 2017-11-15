@@ -40,8 +40,8 @@ namespace Runtime {
 		
 		void release() const { ::delete this; }
 
+		Tp const& act() const { return value; }
 		Tp const& act(Tp const& val) { value = val; return value; }
-		Tp const& act(Tp const& val) const { return value; }
 
 		Tp const& operator=(Tp const& val) { return value = val; }
 		operator Tp() const { return value; };
@@ -96,7 +96,7 @@ namespace Runtime {
 		void release() const { value_ptr->release(); value_ptr = nullptr; }
 		
 		Tp const& act(Tp const& value) { return value_ptr->act(value); }
-		Tp const& act(Tp const& value) const { return value_ptr->act(); }
+		Tp const& act() const { return value_ptr->act(); }
 
 		Tp const& operator=(Tp const& val) { return value_ptr->act(val); }
 		operator Tp() const { return value_ptr->act(); };
