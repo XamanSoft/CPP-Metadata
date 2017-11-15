@@ -27,7 +27,7 @@ public:
 	MD_OBJECT_FUNCTION(int, put, char const* name, CppMetadata::Value* value);
 
 	//MD_OBJECT_PROPERTY_GS(int,prop,&VM::prop_getter,&VM::prop_setter);
-	
+
 #ifdef _MD_OBJECT_DECL
 	VM();
 	virtual ~VM();

@@ -22,7 +22,7 @@
 			'ClCompile': {
 				#'WarningLevel': 'Level4', # /W4
 				'PreprocessorDefinitions': [
-					'_WIN32_WINNT=0x0602', # Windows 8 or later
+					'_WIN32_WINNT=0x0600', # Windows Vista SP2 or later
 					'WIN32_LEAN_AND_MEAN',
 					'NOMINMAX',
 					'DUK_USE_CPP_EXCEPTIONS=1'
