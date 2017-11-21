@@ -1,6 +1,5 @@
 #include "test.hpp"
-#include <iostream>
-#include <stdexcept>
+
 int main()
 {
 	Test test;

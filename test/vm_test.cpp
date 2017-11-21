@@ -1,7 +1,6 @@
 #include <CppMetadata.hpp>
 #include <iostream>
 #include <string>
-#include <exception>
 
 int main()
 {
