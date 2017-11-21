@@ -2,27 +2,38 @@
 #define _CPPMETADATA_VALUE_HPP
 
 namespace CppMetadata {
-
+	
 class Value
 {
 public:
-    virtual Type const& type() const =0;
-	
-	enum RoleType { NONE =0, VALUE, FUNCTION };
+	enum RoleType { FUNCTION = -1, NONE =0, VALUE = 1, MULTIVALUE };
 	
 	virtual char const* const name() const =0;
+	virtual CppMetadata::Type const& type() const =0;
 	virtual int role() const =0;
+	virtual int count() const =0;
+	
+	virtual Value* clone() const =0;
+	
+	virtual Value& at(int index) =0;
+	virtual Value const& at(int index) const =0;
 
 	virtual Value* action(Value const& value) =0;
 	virtual Value const* action(Value const& value) const =0;
-	
+
 	virtual void release() const =0;
-	
-	virtual ~Value(){}
-	
+
+	virtual ~Value() { }
+
+	template <typename Tp>
+	Tp const& operator[](int index) const;
+
+	template <typename Tp>
+	Tp& operator[](int index);
+
 	template <typename Tp>
 	Tp const& operator=(Tp const& val);
-	
+
 	template <typename Tp>
 	operator Tp() const;
 };
@@ -30,7 +41,7 @@ public:
 template <typename... params_type>
 class MultiValue: public Value
 {
-	template<std::size_t N, typename T, typename... types>
+	template<const int N, typename T, typename... types>
 	struct get_Nth_type
 	{
 		using type = typename get_Nth_type<N - 1, types...>::type;
@@ -43,18 +54,31 @@ class MultiValue: public Value
 	};
 	
 public:
-	template<std::size_t N>
+	template<const int N>
 	using Type = typename get_Nth_type<N, params_type...>::type;
-
-	virtual Type<0> const& act() const =0;
-	virtual Type<0> const& act(Type<0> const& value) =0;
-
-	virtual Type<0> const& operator=(Type<0> const& val) =0;
-	virtual operator Type<0>() const =0;
+	
+	virtual Value& operator[](int index) =0;
+	virtual Value const& operator()(int index) const =0;
+	
+	virtual MultiValue<params_type...>& operator()(params_type... params) =0;
+	virtual MultiValue<params_type...> const& operator()(params_type... params) const =0;
 	
 	virtual ~MultiValue(){}
 };
+
+template <typename Tp>
+class MultiValue<Tp>: public Value
+{
+public:
+	virtual MultiValue<Tp>& operator()(Tp param) =0;
+	virtual MultiValue<Tp> const& operator()(Tp param) const =0;
+
+	virtual Tp const& operator=(Tp const& val) =0;
+	virtual operator Tp() const =0;
 	
+	virtual ~MultiValue(){}
+};
+
 }
 
 #endif

@@ -1,8 +1,6 @@
 #ifndef _CPPMETADATA_RUNTIME_TYPE_HPP
 #define _CPPMETADATA_RUNTIME_TYPE_HPP
 
-//#include "arguments.hpp"
-
 #include <stdexcept>
 
 #define MD_TYPE_CONCAT(X,Y) X##Y  // helper macro
@@ -21,9 +19,10 @@ namespace Runtime {
 	template <typename Tp>
 	inline CppMetadata::Type& retriveRuntimeType()
 	{
+		std::cout << "type " << typeid(Tp).name() << std::endl;
 		throw std::invalid_argument("Use MD_DECLARE_TYPE macro to declare a type!");
 	}
-	
+
 }
 
 }
@@ -69,8 +68,6 @@ MD_DECLARE_TYPE(float);
 MD_DECLARE_TYPE(double);
 MD_DECLARE_TYPE(long double);
 
-MD_DECLARE_TYPE(CppMetadata::Arguments*);
-MD_DECLARE_TYPE(CppMetadata::Arguments const*);
 MD_DECLARE_TYPE(CppMetadata::Value*);
 MD_DECLARE_TYPE(CppMetadata::Value const*);
 MD_DECLARE_TYPE(CppMetadata::Object*);
@@ -99,8 +96,8 @@ namespace Runtime {
 		bool isEqual(CppMetadata::Type const& type) const { return type_id == type.id(); }
 		bool isNotEqual(CppMetadata::Type const& type) const { return type_id != type.id(); }
 		
-		CppMetadata::Value* createValue() { return new CppMetadata::Runtime::Value<Tp>(*this); }
-		CppMetadata::Value* createValue(CppMetadata::Arguments const& args)  { return new CppMetadata::Runtime::Value<Tp>(*this, args); }
+		CppMetadata::Value* createValue() { return new CppMetadata::Runtime::Value<Tp>(); }
+		CppMetadata::Value* createValue(CppMetadata::Value const& args)  { return new CppMetadata::Runtime::Value<Tp>(args); }
 	};
 	
 	template <>
@@ -121,8 +118,8 @@ namespace Runtime {
 		bool isEqual(CppMetadata::Type const& type) const { return type_id == type.id(); }
 		bool isNotEqual(CppMetadata::Type const& type) const { return type_id != type.id(); }
 		
-		CppMetadata::Value* createValue() { return new CppMetadata::Runtime::Value<void>(*this); }
-		CppMetadata::Value* createValue(CppMetadata::Arguments const& args)  { return new CppMetadata::Runtime::Value<void>(*this, args); }
+		CppMetadata::Value* createValue() { return new CppMetadata::Runtime::Value<void>(); }
+		CppMetadata::Value* createValue(CppMetadata::Value const& args)  { return new CppMetadata::Runtime::Value<void>(args); }
 	};
 	
 	template <typename Tp>
@@ -142,10 +139,10 @@ namespace Runtime {
 		bool isNotEqual(CppMetadata::Type const& type) const { return type_proxy.isNotEqual(type); }
 		
 		CppMetadata::Value* createValue() { return type_proxy.createValue(); }
-		CppMetadata::Value* createValue(CppMetadata::Arguments const& args)  { return type_proxy.createValue(args); }
+		CppMetadata::Value* createValue(CppMetadata::Value const& args)  { return type_proxy.createValue(args); }
 		
 		ValuePtr<Tp> createMultiValue() { return ValuePtr<Tp>(type_proxy.createValue()); }
-		ValuePtr<Tp> createMultiValue(CppMetadata::Arguments const& args)  { return ValuePtr<Tp>(type_proxy.createValue(args)); }
+		ValuePtr<Tp> createMultiValue(CppMetadata::Value const& args)  { return ValuePtr<Tp>(type_proxy.createValue(args)); }
 	};
 }
 	

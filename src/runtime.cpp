@@ -82,8 +82,6 @@ MD_REGISTER_TYPE(float);
 MD_REGISTER_TYPE(double);
 MD_REGISTER_TYPE(long double);
 
-MD_REGISTER_TYPE(CppMetadata::Arguments*);
-MD_REGISTER_TYPE(CppMetadata::Arguments const*);
 MD_REGISTER_TYPE(CppMetadata::Value*);
 MD_REGISTER_TYPE(CppMetadata::Value const*);
 MD_REGISTER_TYPE(CppMetadata::Object*);

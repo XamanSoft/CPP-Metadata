@@ -10,11 +10,12 @@
 #endif
 
 #include <map>
+#include <string>
 
 #define MD_OBJECT(o_name) \
     private:\
     CppMetadata::Object::ObjectInfo o_info{ #o_name, nullptr, this }; \
-    std::map<const char*,CppMetadata::Value*> members;\
+    std::map<std::string,CppMetadata::Value*> members;\
     typedef o_name object_self_t;\
 	template <class ObjTp> friend void CppMetadata::Runtime::registerMember(ObjTp*, char const* const, CppMetadata::Value*);\
     public: \

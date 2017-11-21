@@ -11,7 +11,7 @@ typedef struct duk_hthread duk_context;
 #endif
 
 namespace CppMetadata {
-	
+
 #ifdef _MD_OBJECT_DECL
 namespace Runtime {
 #endif

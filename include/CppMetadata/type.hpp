@@ -4,7 +4,6 @@
 namespace CppMetadata {
 	
 class Value;
-class Arguments;
 
 class Type
 {
@@ -17,7 +16,7 @@ public:
 	virtual bool isNotEqual(Type const& type) const =0;
 	
 	virtual Value* createValue() =0;
-	virtual Value* createValue(Arguments const& args) =0;
+	virtual Value* createValue(Value const& args) =0;
 	
 	virtual ~Type(){}
 };
