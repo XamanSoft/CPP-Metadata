@@ -189,8 +189,48 @@ namespace Runtime {
 		return new Value<Types...>(args...);
 	}
 	
+	template <typename... params_type>
+	class ValuePtr: public CppMetadata::MultiValue<params_type...>
+	{
+		mutable CppMetadata::MultiValue<params_type...>* value_ptr{nullptr};
+
+	public:
+		ValuePtr() {}
+		ValuePtr(params_type... params): value_ptr(new Runtime::Value<params_type...>(params...)) {}
+		ValuePtr(CppMetadata::MultiValue<params_type...>* v_ptr): value_ptr(v_ptr) {}
+		ValuePtr(CppMetadata::Value* v_ptr) { value_ptr = static_cast<CppMetadata::MultiValue<params_type...>*>(v_ptr); }
+		
+		virtual ~ValuePtr(){ if (value_ptr) value_ptr->release(); }
+		
+		char const* const name() const { return value_ptr->name(); }
+		CppMetadata::Type const& type() const { return value_ptr->type(); }
+		int role() const { return value_ptr->role(); }
+		int count() const { return value_ptr->count(); }
+	
+		CppMetadata::Value* clone() const { return value_ptr->clone(); }
+		
+		CppMetadata::Value& at(int index) { return value_ptr->at(index); }
+		CppMetadata::Value const& at(int index) const { return value_ptr->at(index); }
+    		
+		CppMetadata::Value const* action(CppMetadata::Value const& val) const { return value_ptr; }
+		CppMetadata::Value* action(CppMetadata::Value const& val) { return value_ptr->action(val); }
+		
+		void release() const { value_ptr->release(); value_ptr = nullptr; }
+	
+		CppMetadata::Value& operator[](int index) { return value_ptr->at(index); }
+		CppMetadata::Value const& operator()(int index) const { return value_ptr->at(index); }
+	
+		CppMetadata::MultiValue<params_type...>& operator()(params_type... params) { value_ptr->operator()(params...); return *this; }
+		CppMetadata::MultiValue<params_type...> const& operator()(params_type... params) const { value_ptr->operator()(params...); return *this; }
+
+		bool isNull() { return value_ptr == nullptr; }
+		
+		void operator=(CppMetadata::Value* v_ptr) { value_ptr = static_cast<CppMetadata::MultiValue<Tp>*>(v_ptr); }
+		void operator=(CppMetadata::MultiValue<params_type...>* v_ptr) { value_ptr = v_ptr; }
+	};
+	
 	template <typename Tp>
-	class ValuePtr: public CppMetadata::MultiValue<Tp>
+	class ValuePtr<Tp>: public CppMetadata::MultiValue<Tp>
 	{
 		mutable CppMetadata::MultiValue<Tp>* value_ptr{nullptr};
 
