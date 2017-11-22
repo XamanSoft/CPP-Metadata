@@ -79,6 +79,13 @@ public:
 	virtual ~MultiValue(){}
 };
 
+template <>
+class MultiValue<void>: public Value
+{
+public:
+	virtual ~MultiValue(){}
+};
+
 // Deduce Value from args to remove const and references
 template <typename... Types>
 Value* newValue(Types... args);

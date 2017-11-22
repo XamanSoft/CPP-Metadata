@@ -190,7 +190,6 @@ namespace Runtime {
 
 	public:
 		ValuePtr() {}
-		ValuePtr(params_type... params): value_ptr(new Runtime::Value<params_type...>(params...)) {}
 		ValuePtr(CppMetadata::MultiValue<params_type...>* v_ptr): value_ptr(v_ptr) {}
 		ValuePtr(CppMetadata::Value* v_ptr) { value_ptr = static_cast<CppMetadata::MultiValue<params_type...>*>(v_ptr); }
 		
@@ -230,7 +229,6 @@ namespace Runtime {
 
 	public:
 		ValuePtr() {}
-		ValuePtr(Tp const& val): value_ptr(new Runtime::Value<Tp>(val)) {}
 		ValuePtr(CppMetadata::MultiValue<Tp>* v_ptr): value_ptr(v_ptr) {}
 		ValuePtr(CppMetadata::Value* v_ptr) { value_ptr = static_cast<CppMetadata::MultiValue<Tp>*>(v_ptr); }
 		
@@ -261,6 +259,68 @@ namespace Runtime {
 		
 		void operator=(CppMetadata::Value* v_ptr) { value_ptr = static_cast<CppMetadata::MultiValue<Tp>*>(v_ptr); }
 		void operator=(CppMetadata::MultiValue<Tp>* v_ptr) { value_ptr = v_ptr; }
+	};
+	
+	template <>
+	class ValuePtr<void>: public CppMetadata::Value
+	{
+		mutable CppMetadata::Value* value_ptr;
+
+	public:
+		ValuePtr(): value_ptr(nullptr) {}
+		ValuePtr(CppMetadata::Value* v_ptr): value_ptr(v_ptr) { }
+		
+		virtual ~ValuePtr(){ if (value_ptr) value_ptr->release(); }
+		
+		char const* const name() const { return value_ptr->name(); }
+		CppMetadata::Type const& type() const { return value_ptr->type(); }
+		int role() const { return value_ptr->role(); }
+		int count() const { return value_ptr->count(); }
+	
+		CppMetadata::Value* clone() const { return value_ptr->clone(); }
+		
+		CppMetadata::Value& at(int index) { return value_ptr->at(index); }
+		CppMetadata::Value const& at(int index) const { return value_ptr->at(index); }
+
+		CppMetadata::Value const* action(CppMetadata::Value const& val) const { return value_ptr; }
+		CppMetadata::Value* action(CppMetadata::Value const& val) { return value_ptr->action(val); }
+		
+		void release() const { value_ptr->release(); value_ptr = nullptr; }
+
+		bool isNull() { return value_ptr == nullptr; }
+		
+		void operator=(CppMetadata::Value* v_ptr) { value_ptr = v_ptr; }
+	};
+	
+	template <>
+	class ValuePtr<>: public CppMetadata::Value
+	{
+		mutable CppMetadata::Value* value_ptr{nullptr};
+
+	public:
+		ValuePtr(): value_ptr(new Runtime::Value<>()) {}
+		ValuePtr(CppMetadata::Value* v_ptr): value_ptr(v_ptr) { }
+		
+		virtual ~ValuePtr(){ if (value_ptr) value_ptr->release(); }
+		
+		char const* const name() const { return value_ptr->name(); }
+		CppMetadata::Type const& type() const { return value_ptr->type(); }
+		int role() const { return value_ptr->role(); }
+		int count() const { return value_ptr->count(); }
+	
+		CppMetadata::Value* clone() const { return value_ptr->clone(); }
+		
+		CppMetadata::Value& at(int index) { return value_ptr->at(index); }
+		CppMetadata::Value const& at(int index) const { return value_ptr->at(index); }
+
+		CppMetadata::Value const* action(CppMetadata::Value const& val) const { return value_ptr; }
+		CppMetadata::Value* action(CppMetadata::Value const& val) { return value_ptr->action(val); }
+		
+		void release() const { value_ptr->release(); value_ptr = nullptr; }
+
+		bool isNull() { return value_ptr == nullptr; }
+		
+		void operator=(CppMetadata::Value* v_ptr) { value_ptr = v_ptr; }
 	};
 
 template <class ObjTp>
@@ -343,22 +403,12 @@ public:
 
 	ret_val operator()(params_type... params)
 	{
-		CppMetadata::Value* args = CppMetadata::newValue(params...);
-		CppMetadata::Value* val = action(*args);
-		ret_val res = *val;
-		val->release();
-		args->release();
-		return res;
+		return ValuePtr<ret_val>(action(ValuePtr<>(CppMetadata::newValue(params...))));
 	}
 
 	ret_val operator()(params_type... params) const
 	{		
-		CppMetadata::Value* args = CppMetadata::newValue(params...);
-		CppMetadata::Value* val = action(*args);
-		ret_val res = *val;
-		val->release();
-		args->release();
-		return res;
+		return ValuePtr<ret_val>(action(ValuePtr<>(CppMetadata::newValue(params...))));
 	}
 };
 
@@ -425,16 +475,12 @@ public:
 
 	void operator()(params_type... params)
 	{
-		CppMetadata::Value* val = CppMetadata::newValue(params...);
-		action(*val)->release();
-		val->release();
+		ValuePtr<void>(action(ValuePtr<>(CppMetadata::newValue(params...))));
 	}
 	
 	void operator()(params_type... params) const
 	{
-		CppMetadata::Value* val = CppMetadata::newValue(params...);
-		action(*val)->release();
-		val->release();
+		ValuePtr<void>(action(ValuePtr<>(CppMetadata::newValue(params...))));
 	}
 };
 
@@ -554,22 +600,12 @@ public:
 	
 	ret_val operator()(params_type... params)
 	{
-		CppMetadata::Value* args = CppMetadata::newValue(params...);
-		CppMetadata::Value* val = action(*args);
-		ret_val res = *val;
-		val->release();
-		args->release();
-		return res;
+		return ValuePtr<ret_val>(action(ValuePtr<>(CppMetadata::newValue(params...))));
 	}
 	
 	ret_val operator()(params_type... params) const
 	{	
-		CppMetadata::Value* args = CppMetadata::newValue(params...);
-		CppMetadata::Value* val = action(*args);
-		ret_val res = *val;
-		val->release();
-		args->release();
-		return res;
+		return ValuePtr<ret_val>(action(ValuePtr<>(CppMetadata::newValue(params...))));
 	}
 };
 
@@ -601,16 +637,12 @@ public:
 	
 	void operator()(params_type... params)
 	{
-		CppMetadata::Value* args = CppMetadata::newValue(params...);
-		action(*args)->release();
-		args->release();
+		ValuePtr<void>(action(ValuePtr<>(CppMetadata::newValue(params...))));
 	}
 	
 	void operator()(params_type... params) const
 	{
-		CppMetadata::Value* args = CppMetadata::newValue(params...);
-		action(*args)->release();
-		args->release();
+		ValuePtr<void>(action(ValuePtr<>(CppMetadata::newValue(params...))));
 	}
 };
 
