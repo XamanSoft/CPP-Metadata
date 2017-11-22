@@ -79,6 +79,10 @@ public:
 	virtual ~MultiValue(){}
 };
 
+// Deduce Value from args to remove const and references
+template <typename... Types>
+Value* newValue(Types... args);
+
 }
 
 #endif

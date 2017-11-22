@@ -183,12 +183,6 @@ namespace Runtime {
 		void release() const { ::delete this; }
 	};
 	
-	template <typename... Types>
-	inline Value<Types...>* buildValues(Types... args)
-	{
-		return new Value<Types...>(args...);
-	}
-	
 	template <typename... params_type>
 	class ValuePtr: public CppMetadata::MultiValue<params_type...>
 	{
@@ -349,7 +343,7 @@ public:
 
 	ret_val operator()(params_type... params)
 	{
-		CppMetadata::Value* args = buildValues(params...);
+		CppMetadata::Value* args = CppMetadata::newValue(params...);
 		CppMetadata::Value* val = action(*args);
 		ret_val res = *val;
 		val->release();
@@ -359,7 +353,7 @@ public:
 
 	ret_val operator()(params_type... params) const
 	{		
-		CppMetadata::Value* args = buildValues(params...);
+		CppMetadata::Value* args = CppMetadata::newValue(params...);
 		CppMetadata::Value* val = action(*args);
 		ret_val res = *val;
 		val->release();
@@ -431,14 +425,14 @@ public:
 
 	void operator()(params_type... params)
 	{
-		CppMetadata::Value* val = buildValues(params...);
+		CppMetadata::Value* val = CppMetadata::newValue(params...);
 		action(*val)->release();
 		val->release();
 	}
 	
 	void operator()(params_type... params) const
 	{
-		CppMetadata::Value* val = buildValues(params...);
+		CppMetadata::Value* val = CppMetadata::newValue(params...);
 		action(*val)->release();
 		val->release();
 	}
@@ -560,7 +554,7 @@ public:
 	
 	ret_val operator()(params_type... params)
 	{
-		CppMetadata::Value* args = buildValues(params...);
+		CppMetadata::Value* args = CppMetadata::newValue(params...);
 		CppMetadata::Value* val = action(*args);
 		ret_val res = *val;
 		val->release();
@@ -570,7 +564,7 @@ public:
 	
 	ret_val operator()(params_type... params) const
 	{	
-		CppMetadata::Value* args = buildValues(params...);
+		CppMetadata::Value* args = CppMetadata::newValue(params...);
 		CppMetadata::Value* val = action(*args);
 		ret_val res = *val;
 		val->release();
@@ -607,14 +601,14 @@ public:
 	
 	void operator()(params_type... params)
 	{
-		CppMetadata::Value* args = buildValues(params...);
+		CppMetadata::Value* args = CppMetadata::newValue(params...);
 		action(*args)->release();
 		args->release();
 	}
 	
 	void operator()(params_type... params) const
 	{
-		CppMetadata::Value* args = buildValues(params...);
+		CppMetadata::Value* args = CppMetadata::newValue(params...);
 		action(*args)->release();
 		args->release();
 	}
@@ -699,6 +693,12 @@ template <typename Tp>
 Value::operator Tp() const
 {
 	return static_cast<CppMetadata::MultiValue<Tp> const&>(*this);
+}
+
+template <typename... Types>
+Value* newValue(Types... args)
+{
+	return new Runtime::Value<Types...>(args...);
 }
 
 #define MD_VALUE_ENABLE_ARGS(type) namespace CppMetadata { namespace Runtime { template<> inline type valueConstructor<type>(CppMetadata::Value const& args) { return type(args); } } }
