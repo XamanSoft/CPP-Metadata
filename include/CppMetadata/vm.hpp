@@ -26,19 +26,15 @@ public:
 	MD_OBJECT_FUNCTION(CppMetadata::Value*, get, char const* name);
 	MD_OBJECT_FUNCTION(int, put, char const* name, CppMetadata::Value* value);
 
-	//MD_OBJECT_PROPERTY_GS(int,prop,&VM::prop_getter,&VM::prop_setter);
-
 #ifdef _MD_OBJECT_DECL
 	VM();
 	virtual ~VM();
 
 private:
-//	int prop_getter(int const& value);
-//	void prop_setter(int const& value);
-
 	CppMetadata::Value* vm_get_value();
 	std::string value_str;
 	duk_context* vm_context;
+	void **vm_info;
 #endif
 };
 

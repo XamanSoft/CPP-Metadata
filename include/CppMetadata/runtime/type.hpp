@@ -19,7 +19,6 @@ namespace Runtime {
 	template <typename Tp>
 	inline CppMetadata::Type& retriveRuntimeType()
 	{
-		std::cout << "type " << typeid(Tp).name() << std::endl;
 		throw std::invalid_argument("Use MD_DECLARE_TYPE macro to declare a type!");
 	}
 

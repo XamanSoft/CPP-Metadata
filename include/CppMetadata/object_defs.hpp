@@ -15,7 +15,7 @@
 	template <typename... params_type>\
 	inline o_name(params_type... params) { \
 		CppMetadata::Object* _md_object_new_##o_name(CppMetadata::Value const& args); \
-		object = _md_object_new_##o_name(CppMetadata::Runtime::Value<params_type...>(params...)); \
+		object = _md_object_new_##o_name(CppMetadata::Runtime::Value<params_type...>(params...));\
 	} \
     virtual const CppMetadata::Object::ObjectInfo& objectInfo() const { return object->objectInfo(); } \
     virtual int memberCount() const { if (object) return object->memberCount(); return 0; };\

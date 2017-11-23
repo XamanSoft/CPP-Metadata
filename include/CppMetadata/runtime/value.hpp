@@ -387,17 +387,17 @@ private:
 	
 public:	
 	Function(ObjTp* obj, char const* const name, function_t func): function_name(name), function(func), object(obj) { registerMember<ObjTp>(object,name,this); }
-	
+
 	void release() const {}
-	
+
 	char const* const name() const { return function_name; }
 	int count() const { return sizeof...(params_type); }
-	
+
 	CppMetadata::Value* clone() const { return nullptr; }
-	
+
 	CppMetadata::Value& at(int index) { return *this; }
 	CppMetadata::Value const& at(int index) const { return *this; }
-	
+
 	CppMetadata::Value* action(CppMetadata::Value const& value) { return unpack_caller()(object, function, value); }
 	CppMetadata::Value const* action(CppMetadata::Value const& value) const { return unpack_caller()(object, function, value); }
 
