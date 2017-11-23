@@ -110,7 +110,7 @@ duk_ret_t do_print(duk_context *ctx) {
 }
 
 /*
- * This is Point function, constructor. Note that it can be called
+ * This is Object function, constructor. Note that it can be called
  * as a standard function call, you may need to check for
  * duk_is_constructor_call to be sure that it is constructed
  * as a "new" statement.
@@ -139,7 +139,7 @@ duk_ret_t js_Object_ctor(duk_context *ctx)
 }
 
 /*
- * This is the point destructor
+ * This is the Object destructor
  */
 duk_ret_t js_Object_dtor(duk_context *ctx)
 {
@@ -162,44 +162,39 @@ duk_ret_t js_Object_dtor(duk_context *ctx)
     return 0;
 }
 
-/*
- * Basic toString method
- */
 duk_ret_t js_Object_memberCount(duk_context *ctx)
 {
     duk_push_this(ctx);
     duk_get_prop_string(ctx, -1, "\xff""\xff""data");
     CppMetadata::Object *object = static_cast<CppMetadata::Object *>(duk_to_pointer(ctx, -1));
     duk_pop(ctx);
-    duk_push_sprintf(ctx, "%s", object->objectInfo().name);
+    duk_push_int(ctx, object->memberCount());
 
     return 1;
 }
 
-/*
- * Basic toString method
- */
 duk_ret_t js_Object_hasMember(duk_context *ctx)
 {
+	const char* name = duk_require_string(ctx, 0);
+
     duk_push_this(ctx);
     duk_get_prop_string(ctx, -1, "\xff""\xff""data");
     CppMetadata::Object *object = static_cast<CppMetadata::Object *>(duk_to_pointer(ctx, -1));
     duk_pop(ctx);
-    duk_push_sprintf(ctx, "%s", object->objectInfo().name);
+    duk_push_boolean(ctx, object->hasMember(name));
 
     return 1;
 }
 
-/*
- * Basic toString method
- */
 duk_ret_t js_Object_member(duk_context *ctx)
 {
+	const char* name = duk_require_string(ctx, 0);
+	
     duk_push_this(ctx);
     duk_get_prop_string(ctx, -1, "\xff""\xff""data");
-   CppMetadata::Object *object = static_cast<CppMetadata::Object *>(duk_to_pointer(ctx, -1));
+    CppMetadata::Object *object = static_cast<CppMetadata::Object *>(duk_to_pointer(ctx, -1));
     duk_pop(ctx);
-    duk_push_sprintf(ctx, "%s", object->objectInfo().name);
+    duk_push_boolean(ctx, object->hasMember(name));
 
     return 1;
 }
