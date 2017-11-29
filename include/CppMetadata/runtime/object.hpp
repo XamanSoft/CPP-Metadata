@@ -47,7 +47,7 @@ public:
 }
 }
 
-#define MD_OBJECT_REGISTER(object) CppMetadata::Object* _md_object_new_##object(CppMetadata::Value const& args){static CppMetadata::Runtime::ObjectRegisterNoArgs<object> object_register(#object); return object_register.create(args); }
-#define MD_OBJECT_REGISTER_ARGS(object) CppMetadata::Object* _md_object_new_##object(CppMetadata::Value const& args){static CppMetadata::Runtime::ObjectRegisterArgs<object> object_register(#object); return object_register.create(args); }
+#define MD_OBJECT_REGISTER(object) static CppMetadata::Runtime::ObjectRegisterNoArgs<object> object_register_##object(#object); CppMetadata::Object* _md_object_new_##object(CppMetadata::Value const& args){ return object_register_##object.create(args); }
+#define MD_OBJECT_REGISTER_ARGS(object) static CppMetadata::Runtime::ObjectRegisterArgs<object> object_register_##object(#object); CppMetadata::Object* _md_object_new_##object(CppMetadata::Value const& args){ return object_register_##object.create(args); }
 
 #endif

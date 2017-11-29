@@ -2,7 +2,7 @@
 #define _CPPMETADATA_VALUE_HPP
 
 namespace CppMetadata {
-	
+
 class Value
 {
 public:
@@ -26,16 +26,16 @@ public:
 	virtual ~Value() { }
 
 	template <typename Tp>
-	Tp const& operator[](int index) const;
+	inline Tp const& operator[](int index) const;
 
 	template <typename Tp>
-	Tp& operator[](int index);
+	inline Tp operator[](int index);
 
 	template <typename Tp>
-	Tp const& operator=(Tp const& val);
-
+	inline Tp const& operator=(Tp const& val);
+	
 	template <typename Tp>
-	operator Tp() const;
+	inline operator Tp() const;
 };
 
 template <typename... params_type>

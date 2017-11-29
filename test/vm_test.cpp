@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string>
 
+#include "test.hpp"
+
 int main()
 {
 	CppMetadata::VM vm;

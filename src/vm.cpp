@@ -11,7 +11,7 @@ MD_OBJECT_REGISTER(VM);
 static duk_ret_t do_print(duk_context *ctx);
 static duk_ret_t js_Object_ctor(duk_context *ctx);
 static duk_ret_t js_Object_dtor(duk_context *ctx);
-static duk_ret_t js_Object_memberCount(duk_context *ctx);
+static duk_ret_t js_Object_memberInfo(duk_context *ctx);
 static duk_ret_t js_Object_hasMember(duk_context *ctx);
 static duk_ret_t js_Object_member(duk_context *ctx);
 
@@ -23,9 +23,9 @@ VM::VM(): vm_context(duk_create_heap_default()) {
 	
 	// methods, add more here
 	const duk_function_list_entry js_Object_methods[] = {
-		{ "memberCount",   js_Object_memberCount,  0   },
-		{ "hasMember",   js_Object_hasMember,  0   },
-		{ "member",   js_Object_member,  0   },
+		{ "memberInfo",   js_Object_memberInfo,  1   },
+		{ "hasMember",   js_Object_hasMember,  1   },
+		{ "member",   js_Object_member,  DUK_VARARGS },
 		{ nullptr,  nullptr,        0   }
 	};
 
@@ -122,7 +122,7 @@ duk_ret_t js_Object_ctor(duk_context *ctx)
 
     // Push special this binding to the function being constructed
     duk_push_this(ctx);
-
+	
     // Store the underlying object
     duk_push_pointer(ctx, CppMetadata::Runtime::createObject(name, CppMetadata::Runtime::Value<void>()));
     duk_put_prop_string(ctx, -2, "\xff""\xff""data");
@@ -134,8 +134,42 @@ duk_ret_t js_Object_ctor(duk_context *ctx)
     // Store the function destructor
     duk_push_c_function(ctx, js_Object_dtor, 1);
     duk_set_finalizer(ctx, -2);
+	
+	duk_push_this(ctx);;  /* target */
+	duk_push_object(ctx);  /* handler */
+	duk_eval_string(ctx, R"soProxyGet(
+		(function(target, method) {
+			if (!target.hasMember(method))
+				return undefined;
 
-    return 0;
+			var memberInfo = target.memberInfo(method);
+			
+			if (memberInfo.role > 0)
+				return target.member(method);
+			return function () {
+				return target.member.apply(target, [method].concat(Array.prototype.slice.call(arguments)));
+			};
+		})
+	)soProxyGet");
+	duk_put_prop_string(ctx, -2, "get");
+	duk_eval_string(ctx, R"soProxySet(
+		(function(target, method, value) {
+				if (!target.hasMember(method))
+					return false;
+				
+				var memberInfo = target.memberInfo(method);
+				
+				if (memberInfo.role < 1)
+					return false;
+
+				target.member(method, value);
+				return true;
+			})
+	)soProxySet");
+	duk_put_prop_string(ctx, -2, "set");
+	duk_push_proxy(ctx, 0);  /* [ target handler ] -> [ proxy ] */
+
+    return 1;
 }
 
 /*
@@ -162,13 +196,24 @@ duk_ret_t js_Object_dtor(duk_context *ctx)
     return 0;
 }
 
-duk_ret_t js_Object_memberCount(duk_context *ctx)
+duk_ret_t js_Object_memberInfo(duk_context *ctx)
 {
+	const char* name = duk_require_string(ctx, 0);
+	
     duk_push_this(ctx);
     duk_get_prop_string(ctx, -1, "\xff""\xff""data");
     CppMetadata::Object *object = static_cast<CppMetadata::Object *>(duk_to_pointer(ctx, -1));
     duk_pop(ctx);
-    duk_push_int(ctx, object->memberCount());
+	
+	if (!object->hasMember(name))
+	{
+		duk_push_boolean(ctx, false);
+		return 1;
+	}
+	
+	duk_push_object(ctx);
+    duk_push_int(ctx, object->member(name).role());
+	duk_put_prop_string(ctx, -2, "role");	
 
     return 1;
 }
@@ -188,13 +233,57 @@ duk_ret_t js_Object_hasMember(duk_context *ctx)
 
 duk_ret_t js_Object_member(duk_context *ctx)
 {
+	std::vector<CppMetadata::Value*> params;
+	std::string value_str;
+	int nargs = duk_get_top(ctx);
+	
 	const char* name = duk_require_string(ctx, 0);
+
+	for (int index = 1; index < nargs; index++)
+	{
+		switch (duk_get_type(ctx, index))
+		{
+			case DUK_TYPE_NONE:
+			case DUK_TYPE_UNDEFINED:
+			case DUK_TYPE_NULL:
+				params.push_back(new CppMetadata::Runtime::Value<void>());
+			break;
+			
+			case DUK_TYPE_BOOLEAN:
+				params.push_back(new CppMetadata::Runtime::Value<bool>(duk_get_boolean(ctx, index)));
+			break;
+			
+			case DUK_TYPE_NUMBER:
+				params.push_back(new CppMetadata::Runtime::Value<double>(duk_get_number(ctx, index)));
+			break;
+			
+			case DUK_TYPE_STRING:
+				if (!value_str.empty()) value_str.clear();
+				value_str = duk_get_string(ctx, -1);
+				params.push_back(new CppMetadata::Runtime::Value<char const*>(value_str.c_str()));
+			break;
+		}
+	}
 	
     duk_push_this(ctx);
     duk_get_prop_string(ctx, -1, "\xff""\xff""data");
     CppMetadata::Object *object = static_cast<CppMetadata::Object *>(duk_to_pointer(ctx, -1));
     duk_pop(ctx);
-    duk_push_boolean(ctx, object->hasMember(name));
 
+	CppMetadata::Value* res = object->member(name).action(CppMetadata::Runtime::Value<>(params));
+
+	if (res->type().isEqual(CppMetadata::Runtime::retriveRuntimeType<double>()))
+		duk_push_number(ctx, (double)*res);
+	else if (res->type().isEqual(CppMetadata::Runtime::retriveRuntimeType<float>()))
+		duk_push_number(ctx, (float)*res);
+	else if (res->type().isEqual(CppMetadata::Runtime::retriveRuntimeType<int>()))
+		duk_push_int(ctx, *res);
+	else if (res->type().isEqual(CppMetadata::Runtime::retriveRuntimeType<bool>()))
+		duk_push_boolean(ctx, *res);
+	else if (res->type().isEqual(CppMetadata::Runtime::retriveRuntimeType<char const *>()))
+		duk_push_string(ctx, *res);
+	else { delete res; return 0; }
+
+	delete res;
     return 1;
 }

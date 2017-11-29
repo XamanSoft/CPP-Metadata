@@ -1,6 +1,10 @@
 #ifndef _CPPMETADATA_RUNTIME_VALUE_HPP
 #define _CPPMETADATA_RUNTIME_VALUE_HPP
 
+#include <vector>
+#include <iostream>
+//#include <assert.h>
+
 namespace CppMetadata {
 
 namespace Runtime {
@@ -41,6 +45,7 @@ namespace Runtime {
 				return;
 			}
 
+			::delete values[index];
 			*static_cast<Runtime::Value<T>*>(values[index]) = head;
 			Build(index+1, params...);
 		}
@@ -53,6 +58,7 @@ namespace Runtime {
 				return;
 			}
 
+			::delete values[index];
 			*static_cast<Runtime::Value<T>*>(values[index]) = head;
 		}
 
@@ -160,25 +166,54 @@ namespace Runtime {
 	template <>
 	class Value<>: public CppMetadata::Value
 	{
-	public:
-		Value() {}
-		Value(CppMetadata::Value const& val) { action(val); }
-		Value(CppMetadata::Value const* val) { action(*val); }
+		std::vector<CppMetadata::Value*> values;
+		CppMetadata::Type const& value_type;
 		
-		virtual ~Value(){ }
+		template<class T, class... Args>
+		void Build(T head, Args... params)
+		{
+			values.push_back(new Runtime::Value<T>(head));
+			Build(params...);
+		}
 
-		char const* const name() const { return "null"; }
-		CppMetadata::Type const& type() const { return retriveRuntimeType<void>(); }
-		int role() const { return NONE; }
-		int count() const { return 0; }
-	
-		CppMetadata::Value* clone() const { return new Runtime::Value<>(); }
+		template<class T>
+		void Build(T head)
+		{
+			values.push_back(new Runtime::Value<T>(head));
+		}
+
+		void Build() {}
+
+	public:
+		Value(): values(), value_type(retriveRuntimeType<void>()) {}
+		Value(std::vector<CppMetadata::Value*> const& vals, bool clone = false): values(), value_type(retriveRuntimeType<void>()) { if (clone) {for (int i = 0; i < vals.size(); i++) values.push_back(vals[i]->clone());} else values = vals; }
 		
-		CppMetadata::Value& at(int index) { return *this; }
-		CppMetadata::Value const& at(int index) const { return *this; }
+		template <typename... params_type>
+		Value(params_type... params): values(), value_type(retriveRuntimeType<void>()) { Build(params...); }
+		
+		virtual ~Value(){ for (int i = 0; i < values.size(); i++) ::delete values[i]; }
+
+		char const* const name() const { return nullptr; }
+		CppMetadata::Type const& type() const { return retriveRuntimeType<void>(); }
+		int role() const { return !values.size() ? CppMetadata::Value::NONE : (values.size() == 1 ? CppMetadata::Value::VALUE : CppMetadata::Value::MULTIVALUE); }
+		int count() const { return values.size(); }
+	
+		CppMetadata::Value* clone() const { return new Runtime::Value<>(values, true); }
+		
+		CppMetadata::Value& at(int index) { if (index < values.size()) return *values[index]; return *this; }
+		CppMetadata::Value const& at(int index) const { if (index < values.size()) return *values[index]; return *this;  }
 		
 		CppMetadata::Value const* action(CppMetadata::Value const& val) const { return this; }
-		CppMetadata::Value* action(CppMetadata::Value const& val) { return this; }
+		CppMetadata::Value* action(CppMetadata::Value const& val)
+		{
+			for (int i = 0; i < values.size(); i++) ::delete values[i];
+			values.clear();
+			
+			for (int i = 0; i < val.count(); i++)
+				values.push_back(val.at(i).clone());
+
+			return this;
+		}
 
 		void release() const { ::delete this; }
 	};
@@ -356,7 +391,7 @@ private:
 	{
 	private:
 		template <size_t... I>
-		CppMetadata::Value* call(ObjTp* object, function_t f, CppMetadata::Value& args, indices<I...>) const
+		CppMetadata::Value* call(ObjTp* object, function_t f, CppMetadata::Value& args, indices<I...>)
 		{
 			return new Runtime::Value<ret_val>((object->*f)(args.at(I)...));
 		}
@@ -370,13 +405,13 @@ private:
 	public:
 		CppMetadata::Value* operator () (ObjTp* object, function_t f, CppMetadata::Value& args)
 		{
-			//assert(args.size() == num_args); // just to be sure
+			//assert(args.count() == sizeof...(params_type)); // just to be sure
 			return call(object, f, args, BuildIndices<sizeof...(params_type)>{});
 		}
 		
 		CppMetadata::Value* operator () (ObjTp* object, function_t f, CppMetadata::Value const& args) const
 		{
-			//assert(args.size() == num_args); // just to be sure
+			//assert(args.count() == sizeof...(params_type)); // just to be sure
 			return call(object, f, args, BuildIndices<sizeof...(params_type)>{});
 		}
 	};
@@ -426,7 +461,7 @@ private:
 	{
 	private:
 		template <size_t... I>
-		CppMetadata::Value* call(ObjTp* object, function_t f, CppMetadata::Value& args, indices<I...>) const
+		CppMetadata::Value* call(ObjTp* object, function_t f, CppMetadata::Value& args, indices<I...>)
 		{
 			(object->*f)(args.at(I)...);
 			return new Runtime::Value<void>();
@@ -442,13 +477,13 @@ private:
 	public:
 		CppMetadata::Value* operator () (ObjTp* object, function_t f, CppMetadata::Value& args)
 		{
-			//assert(args.size() == num_args); // just to be sure
+			//assert(args.count() == sizeof...(params_type)); // just to be sure
 			return call(object, f, args, BuildIndices<sizeof...(params_type)>{});
 		}
 		
 		CppMetadata::Value* operator () (ObjTp* object, function_t f, CppMetadata::Value const& args) const
 		{
-			//assert(args.size() == num_args); // just to be sure
+			//assert(args.count() == sizeof...(params_type)); // just to be sure
 			return call(object, f, args, BuildIndices<sizeof...(params_type)>{});
 		}
 	};
@@ -516,9 +551,9 @@ public:
     
 	CppMetadata::Value* action(CppMetadata::Value const& value)
 	{
-		if (value.type().isNotEqual(Runtime::Type<void>()))
+		if (value.count() > 0 && value.at(0).type().isNotEqual(Runtime::Type<void>()))
 		{
-			property_value = value;
+			property_value = value.at(0);
 			if (setter != nullptr)
 				(object->*setter)(property_value);
 		}
@@ -708,7 +743,7 @@ Tp const& Value::operator[](int index) const
 }
 
 template <typename Tp>
-Tp& Value::operator[](int index)
+Tp Value::operator[](int index)
 {
 	if (index > this->count()) return Tp();
 
@@ -726,6 +761,60 @@ Value::operator Tp() const
 {
 	return static_cast<CppMetadata::MultiValue<Tp> const&>(*this);
 }
+
+// int's specialization with floating point conversion
+#define _MD_INTVALUE_SPEC(Tp) \
+template <> \
+inline Tp const& Value::operator[] <Tp>(int index) const \
+{ \
+	if (index > this->count()) return Tp(); \
+	if (this->type().isEqual(Runtime::retriveRuntimeType<float>())) \
+		return (float)static_cast<CppMetadata::MultiValue<float> const&>(this->at(index)); \
+	if (this->type().isEqual(Runtime::retriveRuntimeType<double>())) \
+		return (double)static_cast<CppMetadata::MultiValue<double> const&>(this->at(index)); \
+	return static_cast<CppMetadata::MultiValue<Tp> const&>(this->at(index)); \
+} \
+template <> \
+inline Tp Value::operator[] <Tp>(int index) \
+{ \
+	if (index > this->count()) return Tp(); \
+	if (this->type().isEqual(Runtime::retriveRuntimeType<float>())) \
+		return (float)static_cast<CppMetadata::MultiValue<float> const&>(this->at(index)); \
+	if (this->type().isEqual(Runtime::retriveRuntimeType<double>())) \
+		return (double)static_cast<CppMetadata::MultiValue<double> const&>(this->at(index)); \
+	return static_cast<CppMetadata::MultiValue<Tp> const&>(this->at(index)); \
+} \
+template <> \
+inline Tp const& Value::operator=(Tp const& val) \
+{ \
+	if (this->type().isEqual(Runtime::retriveRuntimeType<float>())) \
+		return (float)(static_cast<CppMetadata::MultiValue<float>&>(*this) = (float)val); \
+	if (this->type().isEqual(Runtime::retriveRuntimeType<double>())) \
+		return (double)(static_cast<CppMetadata::MultiValue<double>&>(*this) = (double)val); \
+	return static_cast<CppMetadata::MultiValue<Tp>&>(*this) = val; \
+} \
+inline Value::operator Tp() const { \
+	if (this->type().isEqual(Runtime::retriveRuntimeType<float>())) \
+		return (float)static_cast<CppMetadata::MultiValue<float> const&>(*this); \
+	if (this->type().isEqual(Runtime::retriveRuntimeType<double>())) \
+		return (double)static_cast<CppMetadata::MultiValue<double> const&>(*this); \
+	return static_cast<CppMetadata::MultiValue<Tp> const&>(*this); \
+}
+
+_MD_INTVALUE_SPEC(signed char);
+_MD_INTVALUE_SPEC(char);
+_MD_INTVALUE_SPEC(unsigned char);
+_MD_INTVALUE_SPEC(wchar_t);
+_MD_INTVALUE_SPEC(char16_t);
+_MD_INTVALUE_SPEC(char32_t);
+_MD_INTVALUE_SPEC(short int);
+_MD_INTVALUE_SPEC(unsigned short int);
+_MD_INTVALUE_SPEC(int);
+_MD_INTVALUE_SPEC(unsigned int);
+_MD_INTVALUE_SPEC(long int);
+_MD_INTVALUE_SPEC(unsigned long int);
+_MD_INTVALUE_SPEC(long long int);
+_MD_INTVALUE_SPEC(unsigned long long int);
 
 template <typename... Types>
 Value* newValue(Types... args)

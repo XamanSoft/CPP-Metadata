@@ -102,6 +102,7 @@
 				"CPP-Metadata-lib"
 			],
 			'sources': [
+				'test/test_decl.cpp',
 				'test/vm_test.cpp'
 			],
 		},
