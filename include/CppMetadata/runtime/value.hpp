@@ -8,7 +8,7 @@
 namespace CppMetadata {
 
 namespace Runtime {
-
+	
 	template <typename Tp>
 	inline Tp valueConstructor(CppMetadata::Value const& args)
 	{
@@ -113,6 +113,7 @@ namespace Runtime {
 
 	public:
 		Value(): value(Tp()), value_type(retriveRuntimeType<Tp>()) { }
+		Value(CppMetadata::Value const& args): value(Tp(args)), value_type(retriveRuntimeType<Tp>()) { }
 		Value(Tp val): value(val), value_type(retriveRuntimeType<Tp>()) { }
 
 		char const* const name() const { return nullptr; }
@@ -253,7 +254,7 @@ namespace Runtime {
 
 		bool isNull() { return value_ptr == nullptr; }
 		
-		void operator=(CppMetadata::Value* v_ptr) { value_ptr = static_cast<CppMetadata::MultiValue<Tp>*>(v_ptr); }
+		void operator=(CppMetadata::Value* v_ptr) { value_ptr = static_cast<CppMetadata::MultiValue<params_type...>*>(v_ptr); }
 		void operator=(CppMetadata::MultiValue<params_type...>* v_ptr) { value_ptr = v_ptr; }
 	};
 	
@@ -551,7 +552,7 @@ public:
     
 	CppMetadata::Value* action(CppMetadata::Value const& value)
 	{
-		if (value.count() > 0 && value.at(0).type().isNotEqual(Runtime::Type<void>()))
+		if (value.count() > 0 && value.at(0).type().isNotEqual(retriveRuntimeType<void>()))
 		{
 			property_value = value.at(0);
 			if (setter != nullptr)
@@ -735,7 +736,7 @@ public:
 }
 
 template <typename Tp>
-Tp const& Value::operator[](int index) const
+Tp Value::operator[](int index) const
 {
 	if (index > this->count()) return Tp();
 
@@ -751,7 +752,7 @@ Tp Value::operator[](int index)
 }
 
 template <typename Tp>
-Tp const& Value::operator=(Tp const& val)
+Tp Value::operator=(Tp const& val)
 {
 	return static_cast<CppMetadata::MultiValue<Tp>&>(*this) = val;
 }
@@ -765,9 +766,9 @@ Value::operator Tp() const
 // int's specialization with floating point conversion
 #define _MD_INTVALUE_SPEC(Tp) \
 template <> \
-inline Tp const& Value::operator[] <Tp>(int index) const \
+inline Tp Value::operator[] <Tp>(int index) const \
 { \
-	if (index > this->count()) return Tp(); \
+	if (index > this->count()) return 0; \
 	if (this->type().isEqual(Runtime::retriveRuntimeType<float>())) \
 		return (float)static_cast<CppMetadata::MultiValue<float> const&>(this->at(index)); \
 	if (this->type().isEqual(Runtime::retriveRuntimeType<double>())) \
@@ -777,7 +778,7 @@ inline Tp const& Value::operator[] <Tp>(int index) const \
 template <> \
 inline Tp Value::operator[] <Tp>(int index) \
 { \
-	if (index > this->count()) return Tp(); \
+	if (index > this->count()) return 0; \
 	if (this->type().isEqual(Runtime::retriveRuntimeType<float>())) \
 		return (float)static_cast<CppMetadata::MultiValue<float> const&>(this->at(index)); \
 	if (this->type().isEqual(Runtime::retriveRuntimeType<double>())) \
@@ -785,7 +786,7 @@ inline Tp Value::operator[] <Tp>(int index) \
 	return static_cast<CppMetadata::MultiValue<Tp> const&>(this->at(index)); \
 } \
 template <> \
-inline Tp const& Value::operator=(Tp const& val) \
+inline Tp Value::operator= <Tp>(Tp const& val) \
 { \
 	if (this->type().isEqual(Runtime::retriveRuntimeType<float>())) \
 		return (float)(static_cast<CppMetadata::MultiValue<float>&>(*this) = (float)val); \
@@ -793,6 +794,7 @@ inline Tp const& Value::operator=(Tp const& val) \
 		return (double)(static_cast<CppMetadata::MultiValue<double>&>(*this) = (double)val); \
 	return static_cast<CppMetadata::MultiValue<Tp>&>(*this) = val; \
 } \
+template <> \
 inline Value::operator Tp() const { \
 	if (this->type().isEqual(Runtime::retriveRuntimeType<float>())) \
 		return (float)static_cast<CppMetadata::MultiValue<float> const&>(*this); \

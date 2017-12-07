@@ -11,11 +11,11 @@
 
 namespace CppMetadata {
 
-namespace Runtime {	
+namespace Runtime {
 
 	extern "C" int registerType(char const* name, CppMetadata::Type& type); // int = type-id
 	extern "C" CppMetadata::Type& retriveType(char const* name);
-	
+
 	template <typename Tp>
 	inline CppMetadata::Type& retriveRuntimeType()
 	{
@@ -76,75 +76,75 @@ MD_DECLARE_TYPE(CppMetadata::Object const*);
 
 namespace CppMetadata {
 
-namespace Runtime {		
+namespace Runtime {
 	template <typename Tp>
 	class RegisterType: public CppMetadata::Type
 	{
 		int type_id{0};
 		char const* type_name{nullptr};
 		int type_size{0};
-		
+
 	public:
 		RegisterType(char const* t_name): type_id(registerType(t_name, *this)), type_name(t_name), type_size(sizeof(Tp)) {}
 		virtual ~RegisterType(){}
-		
+
 	    int id() const { return type_id; }
 		char const* const name() const { return type_name; }
 		int size() const { return type_size; }
-		
+
 		bool isEqual(CppMetadata::Type const& type) const { return type_id == type.id(); }
 		bool isNotEqual(CppMetadata::Type const& type) const { return type_id != type.id(); }
-		
+
 		CppMetadata::Value* createValue() { return new CppMetadata::Runtime::Value<Tp>(); }
 		CppMetadata::Value* createValue(CppMetadata::Value const& args)  { return new CppMetadata::Runtime::Value<Tp>(args); }
 	};
-	
+
 	template <>
 	class RegisterType<void>: public CppMetadata::Type
 	{
 		int type_id{0};
 		char const* type_name{nullptr};
 		int type_size{0};
-		
+
 	public:
 		RegisterType(char const* t_name): type_id(registerType(t_name, *this)), type_name(t_name), type_size(0) {}
 		virtual ~RegisterType(){}
-		
+
 	    int id() const { return type_id; }
 		char const* const name() const { return type_name; }
 		int size() const { return type_size; }
-		
+
 		bool isEqual(CppMetadata::Type const& type) const { return type_id == type.id(); }
 		bool isNotEqual(CppMetadata::Type const& type) const { return type_id != type.id(); }
-		
+
 		CppMetadata::Value* createValue() { return new CppMetadata::Runtime::Value<void>(); }
 		CppMetadata::Value* createValue(CppMetadata::Value const& args)  { return new CppMetadata::Runtime::Value<void>(args); }
 	};
-	
+
 	template <typename Tp>
 	class Type: public CppMetadata::Type
 	{
 		CppMetadata::Type &type_proxy;
-		
+
 	public:
 		Type(): type_proxy(retriveRuntimeType<Tp>()) {}
 		virtual ~Type(){}
-		
+
 	    int id() const { return type_proxy.id(); }
 		char const* const name() const { return type_proxy.name(); }
 		int size() const { return type_proxy.size(); }
-		
+
 		bool isEqual(CppMetadata::Type const& type) const { return type_proxy.isEqual(type); }
 		bool isNotEqual(CppMetadata::Type const& type) const { return type_proxy.isNotEqual(type); }
-		
+
 		CppMetadata::Value* createValue() { return type_proxy.createValue(); }
 		CppMetadata::Value* createValue(CppMetadata::Value const& args)  { return type_proxy.createValue(args); }
-		
+
 		ValuePtr<Tp> createMultiValue() { return ValuePtr<Tp>(type_proxy.createValue()); }
 		ValuePtr<Tp> createMultiValue(CppMetadata::Value const& args)  { return ValuePtr<Tp>(type_proxy.createValue(args)); }
 	};
 }
-	
+
 }
 
 #endif

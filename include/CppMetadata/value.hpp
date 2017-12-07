@@ -26,13 +26,13 @@ public:
 	virtual ~Value() { }
 
 	template <typename Tp>
-	inline Tp const& operator[](int index) const;
+	inline Tp operator[](int index) const;
 
 	template <typename Tp>
 	inline Tp operator[](int index);
 
 	template <typename Tp>
-	inline Tp const& operator=(Tp const& val);
+	inline Tp operator=(Tp const& val);
 	
 	template <typename Tp>
 	inline operator Tp() const;
