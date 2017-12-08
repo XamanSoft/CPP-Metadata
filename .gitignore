@@ -9,3 +9,4 @@ build
 *.sln
 Debug
 Release
+build

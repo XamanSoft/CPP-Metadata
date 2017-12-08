@@ -43,11 +43,19 @@ public:
 	CppMetadata::Object* create(CppMetadata::Value const& args){ return new ObjectTp(args); } 
 };
 
-
 }
 }
 
-#define MD_OBJECT_REGISTER(object) static CppMetadata::Runtime::ObjectRegisterNoArgs<object> object_register_##object(#object); CppMetadata::Object* _md_object_new_##object(CppMetadata::Value const& args){ return object_register_##object.create(args); }
-#define MD_OBJECT_REGISTER_ARGS(object) static CppMetadata::Runtime::ObjectRegisterArgs<object> object_register_##object(#object); CppMetadata::Object* _md_object_new_##object(CppMetadata::Value const& args){ return object_register_##object.create(args); }
+#ifndef _MSC_VER
+#define MD_OBJECT_REGISTER_NS(object, ns) namespace ns { static CppMetadata::Runtime::ObjectRegisterNoArgs<object> _md_object_register_noargs(#object); CppMetadata::Object* _md_object_new_##object(CppMetadata::Value const& args){ return _md_object_register_noargs.create(args); } }
+#define MD_OBJECT_REGISTER_ARGS_NS(object, ns) namespace ns { static CppMetadata::Runtime::ObjectRegisterArgs<object> _md_object_register_args(#object); CppMetadata::Object* ns::_md_object_new_##object(CppMetadata::Value const& args){ return _md_object_register_args.create(args); } }
+#define MD_OBJECT_REGISTER(object) static CppMetadata::Runtime::ObjectRegisterNoArgs<object> _md_object_register_noargs(#object); CppMetadata::Object* _md_object_new_##object(CppMetadata::Value const& args){ return _md_object_register_noargs.create(args); }
+#define MD_OBJECT_REGISTER_ARGS(object) static CppMetadata::Runtime::ObjectRegisterArgs<object> _md_object_register_args(#object); CppMetadata::Object* ns::_md_object_new_##object(CppMetadata::Value const& args){ return _md_object_register_args.create(args); }
+#else
+#define MD_OBJECT_REGISTER_NS(object, ns) static CppMetadata::Runtime::ObjectRegisterNoArgs<object> _md_object_register_noargs(#object); CppMetadata::Object* _md_object_new_##object(CppMetadata::Value const& args){ return _md_object_register_noargs.create(args); }
+#define MD_OBJECT_REGISTER_ARGS_NS(object, ns) static CppMetadata::Runtime::ObjectRegisterArgs<object> _md_object_register_args(#object); CppMetadata::Object* _md_object_new_##object(CppMetadata::Value const& args){ return _md_object_register_args.create(args); }
+#define MD_OBJECT_REGISTER(object) MD_OBJECT_REGISTER_NS(object,)
+#define MD_OBJECT_REGISTER_ARGS(object) MD_OBJECT_REGISTER_ARGS_NS(object,)
+#endif
 
 #endif

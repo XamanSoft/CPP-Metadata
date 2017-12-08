@@ -15,7 +15,7 @@ namespace CppMetadata {
 #ifdef _MD_OBJECT_DECL
 namespace Runtime {
 #endif
-
+	
 class VM: public CppMetadata::Object
 {
 	MD_OBJECT(VM);

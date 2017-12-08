@@ -6,7 +6,7 @@
 
 using namespace CppMetadata::Runtime;
 
-MD_OBJECT_REGISTER(VM);
+MD_OBJECT_REGISTER_NS(VM, CppMetadata);
 
 static duk_ret_t do_print(duk_context *ctx);
 static duk_ret_t js_Object_ctor(duk_context *ctx);
